@@ -1,7 +1,12 @@
 module CowProxy
   @@wrapper_classes = {}
 
-  def self.get_wrapper_class(klass)
+  def self.register_proxy(klass, proxy_klass)
+    puts "register proxy for #{klass}" if ENV['DEBUG']
+    @@wrapper_classes[klass] = proxy_klass
+  end
+
+  def self.get_ancestor_wrapper(klass)
     wrapper = nil
     klass.ancestors.each do |ancestor|
       wrapper = @@wrapper_classes[ancestor] and break
@@ -12,7 +17,7 @@ module CowProxy
   def self.wrapper_class(obj)
     return const_get(obj.class.name) if obj.class.name && const_defined?(obj.class.name, false)
     # only classes with defined wrapper and Structs has COW enabled by default
-    get_wrapper_class(obj.class) || CowProxy::WrapClass(obj.class, obj.class < Struct)
+    @@wrapper_classes[obj.class] || CowProxy::WrapClass(obj.class, get_ancestor_wrapper(obj.class), obj.class < Struct)
   end
 
   def self.wrap(obj, parent = nil, parent_var = nil)
@@ -20,28 +25,28 @@ module CowProxy
     wrapper_class(obj).new(obj, parent, parent_var)
   end
 
-  def self.WrapClass(superclass, cow = true)
-    @@wrapper_classes[superclass] = klass = Class.new(Base)
-    methods = superclass.instance_methods
+  def self.WrapClass(klass, proxy_superclass = nil, cow = true)
+    Kernel.puts "create new proxy class for #{klass}#{" from #{proxy_superclass}" if proxy_superclass}" if ENV['DEBUG']
+    proxy_superclass ||= Base
+    proxy_klass = Class.new(proxy_superclass)
+    proxy_klass.wrapped_class = klass
+    methods = klass.instance_methods
     methods -= [:_copy_on_write, :===, :frozen?]
-    #methods -= [:inspect] if ENV['DEBUG']
+    methods -= proxy_superclass.wrapped_class.instance_methods if proxy_superclass.wrapped_class
+    methods -= [:inspect] if ENV['DEBUG']
 
-    klass.module_eval do
+    proxy_klass.module_eval do
       methods.each do |method|
-        if false && method.to_s =~ /\w+=$/
-          attr_writer method.to_s[0..-2]
-        else
-          define_method method, CowProxy.wrapping_block(method, cow)
-        end
+        define_method method, CowProxy.wrapping_block(method, cow)
       end
     end
-    klass.define_singleton_method :public_instance_methods do |all=true|
-      super(all) - superclass.protected_instance_methods
+    proxy_klass.define_singleton_method :public_instance_methods do |all=true|
+      super(all) - klass.protected_instance_methods
     end
-    klass.define_singleton_method :protected_instance_methods do |all=true|
-      super(all) | superclass.protected_instance_methods
+    proxy_klass.define_singleton_method :protected_instance_methods do |all=true|
+      super(all) | klass.protected_instance_methods
     end
-    klass
+    proxy_klass
   end
 
   def self.wrapping_block(mid, cow_allowed)

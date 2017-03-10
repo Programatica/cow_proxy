@@ -1,5 +1,15 @@
 module CowProxy
   class Base
+    class << self
+      attr_accessor :wrapped_class
+
+      def inherited(subclass)
+        subclass.wrapped_class = wrapped_class
+        # avoid registering class returned by WrapClass
+        CowProxy.register_proxy wrapped_class, subclass unless subclass.superclass == Base
+      end
+    end
+
     def initialize(obj, parent = nil, parent_var = nil)
       @delegate_dc_obj = obj
       @parent_proxy = parent
