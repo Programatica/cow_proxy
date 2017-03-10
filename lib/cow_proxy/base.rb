@@ -5,8 +5,7 @@ module CowProxy
 
       def inherited(subclass)
         subclass.wrapped_class = wrapped_class
-        # avoid registering class returned by WrapClass
-        CowProxy.register_proxy wrapped_class, subclass unless subclass.superclass == Base
+        CowProxy.register_proxy wrapped_class, subclass if wrapped_class
       end
     end
 

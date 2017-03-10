@@ -2,8 +2,8 @@ module CowProxy
   @@wrapper_classes = {}
 
   def self.register_proxy(klass, proxy_klass)
-    puts "register proxy for #{klass}" if ENV['DEBUG']
-    @@wrapper_classes[klass] = proxy_klass
+    puts "register proxy for #{klass} with #{proxy_klass} < #{proxy_klass.superclass}" if ENV['DEBUG'] && !@@wrapper_classes[klass]
+    @@wrapper_classes[klass] ||= proxy_klass
   end
 
   def self.get_proxy_klass_for(klass)
@@ -16,7 +16,7 @@ module CowProxy
 
   def self.wrapper_class(obj)
     # only classes with defined wrapper and Structs has COW enabled by default
-    @@wrapper_classes[obj.class] || CowProxy::WrapClass(obj.class, obj.class < Struct)
+    @@wrapper_classes[obj.class] || CowProxy::WrapClass(obj.class, obj.class < Struct, true)
   end
 
   def self.wrap(obj, parent = nil, parent_var = nil)
@@ -24,11 +24,13 @@ module CowProxy
     wrapper_class(obj).new(obj, parent, parent_var)
   end
 
-  def self.WrapClass(klass, cow = true)
+  def self.WrapClass(klass, cow = true, register = false)
     proxy_superclass = get_proxy_klass_for(klass.superclass) || Base
     Kernel.puts "create new proxy class for #{klass}#{" from #{proxy_superclass}" if proxy_superclass}" if ENV['DEBUG']
-    proxy_klass = Class.new(proxy_superclass)
-    proxy_klass.wrapped_class = klass
+    proxy_klass = Class.new(proxy_superclass) do |k|
+      k.wrapped_class = klass
+    end
+    register_proxy klass, proxy_klass if register
     methods = klass.instance_methods
     methods -= [:_copy_on_write, :===, :frozen?]
     methods -= proxy_superclass.wrapped_class.instance_methods if proxy_superclass.wrapped_class
