@@ -1,10 +1,6 @@
 module CowProxy
   @@wrapper_classes = {}
 
-  autoload 'Container', 'cow_proxy/container.rb'
-  autoload 'Array', 'cow_proxy/array.rb'
-  autoload 'Hash', 'cow_proxy/hash.rb'
-
   def self.get_wrapper_class(klass)
     wrapper = nil
     klass.ancestors.each do |ancestor|
@@ -15,7 +11,8 @@ module CowProxy
 
   def self.wrapper_class(obj)
     return const_get(obj.class.name) if obj.class.name && const_defined?(obj.class.name, false)
-    get_wrapper_class(obj.class) || CowProxy::WrapClass(obj.class)
+    # only classes with defined wrapper and Structs has COW enabled by default
+    get_wrapper_class(obj.class) || CowProxy::WrapClass(obj.class, obj.class < Struct)
   end
 
   def self.wrap(obj, parent = nil, parent_var = nil)
@@ -23,7 +20,7 @@ module CowProxy
     wrapper_class(obj).new(obj, parent, parent_var)
   end
 
-  def self.WrapClass(superclass)
+  def self.WrapClass(superclass, cow = true)
     @@wrapper_classes[superclass] = klass = Class.new(Base)
     methods = superclass.instance_methods
     methods -= [:_copy_on_write, :===, :frozen?]
@@ -34,7 +31,7 @@ module CowProxy
         if false && method.to_s =~ /\w+=$/
           attr_writer method.to_s[0..-2]
         else
-          define_method method, CowProxy.wrapping_block(method)
+          define_method method, CowProxy.wrapping_block(method, cow)
         end
       end
     end
@@ -47,7 +44,7 @@ module CowProxy
     klass
   end
 
-  def self.wrapping_block(mid)
+  def self.wrapping_block(mid, cow_allowed)
     lambda do |*args, &block|
       target = __getobj__
       inst_var = "@#{mid}" if mid.to_s =~ /^\w+$/
@@ -57,7 +54,7 @@ module CowProxy
         _remove_instance_variable "@#{$1}"
       end
 
-      cow = true
+      cow = cow_allowed
       begin
         Kernel.puts "run on #{target.class.name} (#{target.object_id}) #{mid} #{args.inspect unless args.empty?}" if ENV['DEBUG']
         value = target.__send__(mid, *args, &block)
@@ -75,49 +72,15 @@ module CowProxy
         retry
       ensure
         Kernel.puts '-----' if ENV['DEBUG']
+        # cleanup exception from cow proxy files
         $@.delete_if {|t| /\A#{Regexp.quote(__FILE__)}:#{__LINE__-2}:/o =~ t} if $@
       end
     end
   end
-
-  class Base
-    def initialize(obj, parent = nil, parent_var = nil)
-      @delegate_dc_obj = obj
-      @parent_proxy = parent
-      @parent_var = parent_var
-    end
-
-    def _copy_on_write(parent = true)
-      Kernel.puts "copy on write on #{self.class.name}" if ENV['DEBUG']
-      @delegate_dc_obj = @delegate_dc_obj.dup.tap do |new_target|
-        if parent && @parent_proxy
-          @parent_proxy._copy_on_write(false)
-          if @parent_var
-            parent_dc = @parent_proxy._instance_variable_get(:@delegate_dc_obj)
-            method = @parent_var[1..-1] + '='
-            parent_dc.send(method, new_target)
-          end
-        end
-      end
-    end
-
-    private
-    def __getobj__  # :nodoc:
-      @delegate_dc_obj
-    end
-
-    def wrap(value, inst_var = nil)
-      if value.frozen?
-        #@parent_proxy._copy_on_write(false) if @parent_proxy
-        CowProxy.wrap(value, self, inst_var)
-      end
-    end
-
-    alias :_instance_variable_get :instance_variable_get
-    alias :_instance_variable_set :instance_variable_set
-    alias :_remove_instance_variable :remove_instance_variable
-    alias :_instance_variable_defined? :instance_variable_defined?
-    alias :_instance_variables? :instance_variable_defined?
-  end
-
 end
+
+require 'cow_proxy/base.rb'
+require 'cow_proxy/container.rb'
+require 'cow_proxy/array.rb'
+require 'cow_proxy/hash.rb'
+require 'cow_proxy/string.rb'
