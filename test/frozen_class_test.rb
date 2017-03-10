@@ -38,7 +38,7 @@ describe CowProxy do
 
     it 'raises on assign' do
       err = lambda { @proxy.a = 2 }.must_raise RuntimeError
-      err.message.must_match /can't modify frozen/
+      err.message.must_match(/can't modify frozen/)
       @proxy.must_equal @origin
       @proxy.a.must_equal @origin.a
       @proxy.b.must_equal @origin.b

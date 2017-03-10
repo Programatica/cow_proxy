@@ -6,7 +6,7 @@ module CowProxy
     @@wrapper_classes[klass] = proxy_klass
   end
 
-  def self.get_ancestor_wrapper(klass)
+  def self.get_proxy_klass_for(klass)
     wrapper = nil
     klass.ancestors.each do |ancestor|
       wrapper = @@wrapper_classes[ancestor] and break
@@ -15,9 +15,8 @@ module CowProxy
   end
 
   def self.wrapper_class(obj)
-    return const_get(obj.class.name) if obj.class.name && const_defined?(obj.class.name, false)
     # only classes with defined wrapper and Structs has COW enabled by default
-    @@wrapper_classes[obj.class] || CowProxy::WrapClass(obj.class, get_ancestor_wrapper(obj.class), obj.class < Struct)
+    @@wrapper_classes[obj.class] || CowProxy::WrapClass(obj.class, obj.class < Struct)
   end
 
   def self.wrap(obj, parent = nil, parent_var = nil)
@@ -25,9 +24,9 @@ module CowProxy
     wrapper_class(obj).new(obj, parent, parent_var)
   end
 
-  def self.WrapClass(klass, proxy_superclass = nil, cow = true)
+  def self.WrapClass(klass, cow = true)
+    proxy_superclass = get_proxy_klass_for(klass.superclass) || Base
     Kernel.puts "create new proxy class for #{klass}#{" from #{proxy_superclass}" if proxy_superclass}" if ENV['DEBUG']
-    proxy_superclass ||= Base
     proxy_klass = Class.new(proxy_superclass)
     proxy_klass.wrapped_class = klass
     methods = klass.instance_methods
