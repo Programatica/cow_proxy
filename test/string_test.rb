@@ -1,0 +1,29 @@
+require 'test_helper'
+
+describe CowProxy do
+  describe 'proxy string' do
+    before do
+      @origin = 'var'
+      @var = @origin.dup.freeze
+      @proxy = CowProxy.wrap(@var)
+    end
+
+    it 'delegates methods' do
+      @proxy.must_equal @origin
+      (@proxy + 's').must_equal @origin + 's'
+      @proxy.must_equal @origin
+      @var.must_equal @origin
+      @proxy.size.must_equal @origin.size
+    end
+
+    it 'copy on write on mutable methods' do
+      @proxy.must_equal @origin
+      @proxy << 's'
+      @proxy.must_equal @origin + 's'
+      @var.must_equal @origin
+
+      @proxy.size.must_equal @origin.size + 1
+      @var.size.must_equal @origin.size
+    end
+  end
+end
