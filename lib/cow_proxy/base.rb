@@ -36,8 +36,8 @@ module CowProxy
 
     def wrap(value, inst_var = nil)
       if value.frozen?
-        #@parent_proxy._copy_on_write(false) if @parent_proxy
-        CowProxy.wrap(value, self, inst_var)
+        Kernel.puts "wrap #{value.class.name} with parent #{self.class.name}" if ENV['DEBUG']
+        CowProxy.wrapper_class(value).new(value, self, inst_var)
       end
     end
 
