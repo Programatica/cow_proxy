@@ -4,9 +4,11 @@ PATH
     cow_proxy (0.1.0)
 
 GEM
-  remote: http://rubygems.org/
+  remote: https://rubygems.org/
   specs:
     byebug (9.0.6)
+    codeclimate-test-reporter (1.0.7)
+      simplecov
     docile (1.1.5)
     ice_nine (0.11.2)
     json (2.0.3)
@@ -23,6 +25,7 @@ PLATFORMS
 
 DEPENDENCIES
   byebug
+  codeclimate-test-reporter
   cow_proxy!
   ice_nine
   minitest
@@ -30,4 +33,4 @@ DEPENDENCIES
   simplecov
 
 BUNDLED WITH
-   1.14.3
+   1.14.6

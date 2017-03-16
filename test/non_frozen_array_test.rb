@@ -28,9 +28,10 @@ describe CowProxy do
 
     it 'change child on mutable methods on child' do
       @proxy.must_equal @origin
+      @var.must_equal @origin
 
       @proxy[2] << 's'
-      @proxy[2].must_equal @origin[2]
+      @proxy[2].must_equal @origin[2] + 's'
       @proxy.wont_equal @origin
       @var.wont_equal @origin
     end

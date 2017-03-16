@@ -13,4 +13,5 @@ group :development, :test do
   gem 'simplecov'
   gem 'minitest'
   gem 'ice_nine'
+  gem 'codeclimate-test-reporter', require: false
 end

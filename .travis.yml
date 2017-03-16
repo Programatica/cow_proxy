@@ -1,0 +1,16 @@
+after_success:
+  - bundle exec codeclimate-test-reporter
+bundler_args: --clean --deployment --jobs=$(nproc) --without development production
+cache: bundler
+dist: trusty
+jdk:
+  - openjdk7
+language: ruby
+rvm:
+  - 2.1.9
+  - 2.2.6
+  - 2.3.3
+  - 2.4.0
+  - jruby-9.1.6.0
+  - rbx-3
+sudo: required
