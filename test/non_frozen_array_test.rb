@@ -4,7 +4,7 @@ describe CowProxy do
   describe 'proxy array' do
     before do
       @origin = [1, true, 'var', [2]]
-      @var = @origin[0..1] + @origin.[2..-1].map(&:dup)
+      @var = @origin[0..1] + @origin[2..-1].map(&:dup)
       @var[-1].freeze
       @proxy = CowProxy.wrap(@var)
     end
