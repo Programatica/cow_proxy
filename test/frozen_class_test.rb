@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class Config
+class MyConfig
   attr_accessor :a, :b
   def initialize(a)
     self.a = a
@@ -15,7 +15,7 @@ describe CowProxy do
   describe 'proxy class' do
     before do
       nested_class = Struct.new(:n, :o)
-      @origin = Config.new(1)
+      @origin = MyConfig.new(1)
       @origin.b = [
         nested_class.new('a', {classes: 'new link', size: '2x2'}),
         nested_class.new('b', {rows: 2})
