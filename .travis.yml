@@ -1,6 +1,6 @@
 after_success:
   - bundle exec codeclimate-test-reporter
-bundler_args: --clean --deployment --binstubs --jobs=$(nproc) --without development production
+bundler_args: --clean --deployment --jobs=$(nproc) --without development production
 cache: bundler
 dist: trusty
 jdk:
@@ -14,3 +14,6 @@ rvm:
   - jruby-9.1.6.0
   - rbx-3
 sudo: required
+matrix:
+  allow_failures:
+    - rvm: rbx-3
