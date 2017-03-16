@@ -16,7 +16,7 @@ module CowProxy
     end
 
     def _copy_on_write(parent = true)
-      Kernel.puts "copy on write on #{self.class.name}" if ENV['DEBUG']
+      Kernel.puts "copy on write on #{__getobj__.class.name}" if ENV['DEBUG']
       @delegate_dc_obj = @delegate_dc_obj.dup.tap do |new_target|
         if parent && @parent_proxy
           @parent_proxy._copy_on_write(false)

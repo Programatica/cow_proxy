@@ -6,7 +6,7 @@ module CowProxy
       begin
         target = __getobj__
         value = target[index]
-        return value unless target.frozen?
+        return value if @hash.nil?
         wrap_value = wrap(value)
         @hash[index] = wrap_value if wrap_value
         wrap_value || value
