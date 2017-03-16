@@ -1,3 +1,12 @@
+[![Gem
+Version](https://badge.fury.io/rb/cow_proxy.svg)](http://badge.fury.io/rb/cow_proxy)
+[![Build Status](https://secure.travis-ci.org/Programatica/cow_proxy.png?branch=master)](http://travis-ci.org/Programatica/cow_proxy)
+[![Code Climate](https://codeclimate.com/github/Programatica/cow_proxy/badges/gpa.svg)](https://codeclimate.com/github/Programatica/cow_proxy)
+[![Dependency Status](https://gemnasium.com/Programatica/cow_proxy.png?branch=master)](https://gemnasium.com/Programatica/cow_proxy)
+[![Test Coverage](https://codeclimate.com/github/Programatica/cow_proxy/badges/coverage.svg)](https://codeclimate.com/github/Programatica/cow_proxy/coverage)
+[![Inline docs](https://inch-ci.org/github/Programatica/cow_proxy.svg?branch=master)](https://inch-ci.org/github/Programatica/cow_proxy)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+
 Overview
 ========
 
