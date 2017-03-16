@@ -9,8 +9,6 @@ module CowProxy
         wrap_value = wrap(value)
         @hash[index] = wrap_value if wrap_value
         wrap_value || value
-      ensure
-        $@.delete_if {|t| /\A#{Regexp.quote(__FILE__)}:#{__LINE__-2}:/o =~ t} if $@
       end
     end
 

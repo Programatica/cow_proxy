@@ -66,9 +66,8 @@ module CowProxy
           cow = false
           retry
         ensure
-          Kernel.puts '-----' if ENV['DEBUG']
-          # cleanup exception from cow proxy files
-          $@.delete_if {|t| /\A#{Regexp.quote(__FILE__)}:#{__LINE__-2}:/o =~ t} if $@
+          # cleanup exception line for retry
+          $@.delete_if {|t| /\A#{Regexp.quote(__FILE__)}:#{__LINE__-3}:/o =~ t} if $@
         end
       end
     end
