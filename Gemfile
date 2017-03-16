@@ -8,7 +8,7 @@ gemspec
 # Add dependencies to develop your gem here.
 # Include everything needed to run rake, tests, features, etc.
 group :development, :test do
-  gem 'byebug', platform: :ruby
+  gem 'byebug', platform: :mri
   gem 'rake'
   gem 'simplecov'
   gem 'minitest'
