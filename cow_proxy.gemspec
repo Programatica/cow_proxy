@@ -12,7 +12,7 @@ Gem::Specification.new do |s|
   s.summary = %q{Copy-on-write proxy class, to use with frozen objects}
   s.description = %q{Make a COW proxy for a frozen object (or deep frozen), it will delegate every read method to proxied object, wrap value in COW proxy if frozen. Trying to modify object will result in data stored in proxy.}
   s.require_paths = ["lib"]
-  s.files = `git ls-files -- app config lib`.split("\n") + %w[LICENSE.txt README.md]
+  s.files = `git ls-files -- app config lib`.split("\n") + %w[LICENSE README.md]
   s.extra_rdoc_files = [
     "README.md"
   ]
