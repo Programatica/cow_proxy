@@ -4,8 +4,7 @@ module CowProxy
       return @hash[index] if @hash && @hash.has_key?(index)
 
       begin
-        target = __getobj__
-        value = target[index]
+        value = __getobj__[index]
         return value if @hash.nil?
         wrap_value = wrap(value)
         @hash[index] = wrap_value if wrap_value
@@ -30,6 +29,5 @@ module CowProxy
         end
       end
     end
-
   end
 end
