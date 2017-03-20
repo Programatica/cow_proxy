@@ -65,7 +65,6 @@ module CowProxy
     end
 
     protected
-    # @!visibility public
     # Replace wrapped object with a copy, so object can
     # be modified.
     #

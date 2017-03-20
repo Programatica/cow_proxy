@@ -20,6 +20,7 @@ module CowProxy
       end
     end
 
+    # @see CowProxy::Base#initialize
     def initialize(*)
       super
       @hash = {}
