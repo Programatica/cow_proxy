@@ -13,7 +13,6 @@
 
 module CowProxy
   class << self
-    # :nodoc:
     @@wrapper_classes = {}
 
     # Create new proxy class for klass, with copy on write enabled.
@@ -56,7 +55,7 @@ module CowProxy
     # if none is registered.
     #
     # @return registered proxy or default proxy without copy on write
-    # if none is registered
+    #   if none is registered
     def wrapper_class(obj)
       # only classes with defined wrapper and Structs has COW enabled by default
       @@wrapper_classes[obj.class] || _WrapClass(obj.class, obj.class < Struct, true)
