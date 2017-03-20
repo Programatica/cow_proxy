@@ -7,6 +7,40 @@ module CowProxy
         subclass.wrapped_class = wrapped_class
         CowProxy.register_proxy wrapped_class, subclass if wrapped_class
       end
+
+      protected
+      def wrapping_block(mid, cow_allowed)
+        lambda do |*args, &block|
+          target = __getobj__
+          inst_var = "@#{mid}" if mid.to_s =~ /^\w+$/
+          return _instance_variable_get(inst_var) if inst_var && _instance_variable_defined?(inst_var)
+          if mid.to_s =~ /^(\w+)=$/ && _instance_variable_defined?("@#{$1}")
+            Kernel.puts "remove #{$1}" if ENV['DEBUG']
+            _remove_instance_variable "@#{$1}"
+          end
+
+          cow = cow_allowed
+          begin
+            Kernel.puts "run on #{target.class.name} (#{target.object_id}) #{mid} #{args.inspect unless args.empty?}" if ENV['DEBUG']
+            value = target.__send__(mid, *args, &block)
+            if inst_var && args.empty? && block.nil?
+              wrap_value = wrap(value, inst_var)
+              _instance_variable_set(inst_var, wrap_value) if wrap_value
+            end
+            wrap_value || value
+          rescue => e
+            raise unless cow && e.message =~ /^can't modify frozen/
+            Kernel.puts "copy on write to run #{mid} #{args.inspect unless args.empty?} (#{e.message})" if ENV['DEBUG']
+            target = _copy_on_write
+            Kernel.puts "new target #{target.class.name} (#{target.object_id})" if ENV['DEBUG']
+            cow = false
+            retry
+          ensure
+            # cleanup exception line for retry
+            $@.delete_if {|t| /\A#{Regexp.quote(__FILE__)}:#{__LINE__-3}:/o =~ t} if $@
+          end
+        end
+      end
     end
 
     def initialize(obj, parent = nil, parent_var = nil)
@@ -15,6 +49,7 @@ module CowProxy
       @parent_var = parent_var
     end
 
+    protected
     def _copy_on_write(parent = true)
       Kernel.puts "copy on write on #{__getobj__.class.name}" if ENV['DEBUG']
       @delegate_dc_obj = @delegate_dc_obj.dup.tap do |new_target|

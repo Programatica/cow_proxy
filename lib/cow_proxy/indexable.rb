@@ -1,5 +1,10 @@
 module CowProxy
   module Indexable
+    # Calls [](index) in wrapped object and keep wrapped
+    # value, so same wrapped value is return on following
+    # calls with same index.
+    #
+    # @return CowProxy wrapped value from wrapped object
     def [](index)
       return @hash[index] if @hash && @hash.has_key?(index)
 
@@ -17,6 +22,7 @@ module CowProxy
       @hash = {}
     end
 
+    protected
     def _copy_on_write(*)
       super.tap do
         if @hash
