@@ -61,13 +61,25 @@ module CowProxy
       @delegate_dc_obj = obj
       @parent_proxy = parent
       @parent_var = parent_var
+      @dc_obj_duplicated = false
     end
 
+    protected
+    # @!visibility public
+    # Replace wrapped object with a copy, so object can
+    # be modified.
+    #
+    # @param [Boolean] parent Replace proxy object in parent with
+    #   duplicated wrapped object, if this proxy was created from
+    #   another CowProxy.
+    # @return duplicated wrapped object
     def _copy_on_write(parent = true)
       Kernel.puts "copy on write on #{__getobj__.class.name}" if ENV['DEBUG']
+      return @delegate_dc_obj if @dc_obj_duplicated
       @delegate_dc_obj = @delegate_dc_obj.dup.tap do |new_target|
+        @dc_obj_duplicated = true
         if parent && @parent_proxy
-          @parent_proxy._copy_on_write(false)
+          @parent_proxy.send :_copy_on_write, false
           if @parent_var
             parent_dc = @parent_proxy._instance_variable_get(:@delegate_dc_obj)
             method = @parent_var[1..-1] + '='

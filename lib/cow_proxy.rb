@@ -13,6 +13,7 @@
 
 module CowProxy
   class << self
+    # @!visibility private
     @@wrapper_classes = {}
 
     # Create new proxy class for klass, with copy on write enabled.
@@ -70,7 +71,7 @@ module CowProxy
       end
       register_proxy klass, proxy_klass if register
       methods = klass.instance_methods
-      methods -= [:_copy_on_write, :===, :frozen?]
+      methods -= [:_copy_on_write, :send, :===, :frozen?]
       methods -= proxy_superclass.wrapped_class.instance_methods if proxy_superclass.wrapped_class
       methods -= [:inspect] if ENV['DEBUG']
 

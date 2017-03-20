@@ -1,4 +1,7 @@
 module CowProxy
+  # A mixin to add wrapper getter and copy-on-write for
+  # indexable classes, such as Array and Hash, i.e. classes
+  # with [] method
   module Indexable
     # Calls [](index) in wrapped object and keep wrapped
     # value, so same wrapped value is return on following
@@ -22,6 +25,10 @@ module CowProxy
       @hash = {}
     end
 
+    protected
+    # Copy wrapped values to duplicated wrapped object
+    # @see CowProxy::Base#_copy_on_write
+    # @return duplicated wrapped object
     def _copy_on_write(*)
       super.tap do
         if @hash
