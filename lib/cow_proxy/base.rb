@@ -1,8 +1,16 @@
 module CowProxy
+  # Base class to create CowProxy classes
+  #
+  # Also, it's used as default CowProxy class for non-registered classes
+  # with copy-on-write disabled, so returned values are wrapped but
+  # methods trying to change object still raise exception.
   class Base
     class << self
+      # Class which will be wrapped with this CowProxy class
       attr_accessor :wrapped_class
 
+      # Setup wrapped_class and register itself into CowProxy
+      # with {CowProxy.register_proxy CowProxy.register_proxy}
       def inherited(subclass)
         subclass.wrapped_class = wrapped_class
         CowProxy.register_proxy wrapped_class, subclass if wrapped_class
@@ -43,6 +51,12 @@ module CowProxy
       end
     end
 
+    # Creates a CowProxy object wrapping obj
+    #
+    # @param obj An object to wrap with CowProxy class
+    # @param parent CowProxy object wrapping obj
+    # @param parent_var instance variable name in parent
+    #   which keeps this CowProxy object
     def initialize(obj, parent = nil, parent_var = nil)
       @delegate_dc_obj = obj
       @parent_proxy = parent

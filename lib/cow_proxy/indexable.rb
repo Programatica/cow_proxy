@@ -17,7 +17,7 @@ module CowProxy
       end
     end
 
-    def initialize(obj, *)
+    def initialize(*)
       super
       @hash = {}
     end
