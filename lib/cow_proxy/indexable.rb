@@ -22,7 +22,6 @@ module CowProxy
       @hash = {}
     end
 
-    protected
     def _copy_on_write(*)
       super.tap do
         if @hash
