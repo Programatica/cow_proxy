@@ -1,5 +1,5 @@
 module CowProxy
-  module Container
+  module Indexable
     def [](index)
       return @hash[index] if @hash && @hash.has_key?(index)
 

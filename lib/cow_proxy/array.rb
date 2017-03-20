@@ -1,6 +1,6 @@
 module CowProxy
   class Array < WrapClass(::Array)
-    include Container
+    include Indexable
   end
 
 end

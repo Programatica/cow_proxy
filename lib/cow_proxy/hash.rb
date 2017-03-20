@@ -1,6 +1,6 @@
 module CowProxy
   class Hash < WrapClass(::Hash)
-    include Container
+    include Indexable
   end
 
 end
