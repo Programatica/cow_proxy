@@ -38,7 +38,7 @@ module CowProxy
     #
     # @return proxy_klass
     def register_proxy(klass, proxy_klass)
-      puts "register proxy for #{klass} with #{proxy_klass} < #{proxy_klass.superclass}" if ENV['DEBUG'] && !@@wrapper_classes[klass]
+      debug "register proxy for #{klass} with #{proxy_klass} < #{proxy_klass.superclass}" unless @@wrapper_classes[klass]
       @@wrapper_classes[klass] ||= proxy_klass
     end
 
@@ -62,16 +62,23 @@ module CowProxy
       @@wrapper_classes[obj.class] || _WrapClass(obj.class, obj.class < Struct, true)
     end
 
+    # Print debug line if debug is enabled (ENV['DEBUG'] true)
+    # @param [String] line debug line to print
+    # @return nil
+    def debug(line)
+      Kernel.puts line if ENV['DEBUG']
+    end
+
     private
     def _WrapClass(klass, cow = true, register = false)
       proxy_superclass = get_proxy_klass_for(klass.superclass) || Base
-      Kernel.puts "create new proxy class for #{klass}#{" from #{proxy_superclass}" if proxy_superclass}" if ENV['DEBUG']
+      debug "create new proxy class for #{klass}#{" from #{proxy_superclass}" if proxy_superclass}"
       proxy_klass = Class.new(proxy_superclass) do |k|
         k.wrapped_class = klass
       end
       register_proxy klass, proxy_klass if register
       methods = klass.instance_methods
-      methods -= [:_copy_on_write, :send, :===, :frozen?]
+      methods -= [:__copy_on_write__, :__wrap__, :__getobj__, :send, :===, :frozen?]
       methods -= proxy_superclass.wrapped_class.instance_methods if proxy_superclass.wrapped_class
       methods -= [:inspect] if ENV['DEBUG']
 

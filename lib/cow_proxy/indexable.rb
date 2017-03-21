@@ -14,13 +14,13 @@ module CowProxy
       begin
         value = __getobj__[index]
         return value if @hash.nil?
-        wrap_value = wrap(value)
+        wrap_value = __wrap__(value)
         @hash[index] = wrap_value if wrap_value
         wrap_value || value
       end
     end
 
-    # @see CowProxy::Base#initialize
+    # Extends {CowProxy::Base#initialize}
     def initialize(*)
       super
       @hash = {}
@@ -28,9 +28,9 @@ module CowProxy
 
     protected
     # Copy wrapped values to duplicated wrapped object
-    # @see CowProxy::Base#_copy_on_write
+    # @see CowProxy::Base#__copy_on_write__
     # @return duplicated wrapped object
-    def _copy_on_write(*)
+    def __copy_on_write__(*)
       super.tap do
         if @hash
           @hash.each do |k, v|

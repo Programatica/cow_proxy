@@ -17,36 +17,25 @@ module CowProxy
       end
 
       protected
-      def wrapping_block(mid, cow_allowed)
+      # Return block with proxy implementation.
+      #
+      # Block calls a method in wrapped object
+      #
+      # @param [Symbol] method Method name to call in wrapped object
+      # @param [Boolean] cow_enabled True if copy-on-write is enabled
+      #   for proxy class, it will _copy_on_write when method will
+      #   modify wrapped object.
+      # @return [Proc] Block with proxy implementation.
+      def wrapping_block(method, cow_enabled)
         lambda do |*args, &block|
           target = __getobj__
-          inst_var = "@#{mid}" if mid.to_s =~ /^\w+$/
+          inst_var = "@#{method}" if method.to_s =~ /^\w+$/
           return _instance_variable_get(inst_var) if inst_var && _instance_variable_defined?(inst_var)
-          if mid.to_s =~ /^(\w+)=$/ && _instance_variable_defined?("@#{$1}")
-            Kernel.puts "remove #{$1}" if ENV['DEBUG']
+          if method.to_s =~ /^(\w+)=$/ && _instance_variable_defined?("@#{$1}")
+            CowProxy.debug "remove #{$1}"
             _remove_instance_variable "@#{$1}"
           end
-
-          cow = cow_allowed
-          begin
-            Kernel.puts "run on #{target.class.name} (#{target.object_id}) #{mid} #{args.inspect unless args.empty?}" if ENV['DEBUG']
-            value = target.__send__(mid, *args, &block)
-            if inst_var && args.empty? && block.nil?
-              wrap_value = wrap(value, inst_var)
-              _instance_variable_set(inst_var, wrap_value) if wrap_value
-            end
-            wrap_value || value
-          rescue => e
-            raise unless cow && e.message =~ /^can't modify frozen/
-            Kernel.puts "copy on write to run #{mid} #{args.inspect unless args.empty?} (#{e.message})" if ENV['DEBUG']
-            target = _copy_on_write
-            Kernel.puts "new target #{target.class.name} (#{target.object_id})" if ENV['DEBUG']
-            cow = false
-            retry
-          ensure
-            # cleanup exception line for retry
-            $@.delete_if {|t| /\A#{Regexp.quote(__FILE__)}:#{__LINE__-3}:/o =~ t} if $@
-          end
+          __wrapped_value__(inst_var, cow_enabled, target, method, *args, &block)
         end
       end
     end
@@ -72,13 +61,13 @@ module CowProxy
     #   duplicated wrapped object, if this proxy was created from
     #   another CowProxy.
     # @return duplicated wrapped object
-    def _copy_on_write(parent = true)
-      Kernel.puts "copy on write on #{__getobj__.class.name}" if ENV['DEBUG']
+    def __copy_on_write__(parent = true)
+      CowProxy.debug "copy on write on #{__getobj__.class.name}"
       return @delegate_dc_obj if @dc_obj_duplicated
       @delegate_dc_obj = @delegate_dc_obj.dup.tap do |new_target|
         @dc_obj_duplicated = true
         if parent && @parent_proxy
-          @parent_proxy.send :_copy_on_write, false
+          @parent_proxy.send :__copy_on_write__, false
           if @parent_var
             parent_dc = @parent_proxy._instance_variable_get(:@delegate_dc_obj)
             method = @parent_var[1..-1] + '='
@@ -93,10 +82,33 @@ module CowProxy
       @delegate_dc_obj
     end
 
-    def wrap(value, inst_var = nil)
+    def __wrap__(value, inst_var = nil)
       if value.frozen?
-        Kernel.puts "wrap #{value.class.name} with parent #{self.class.name}" if ENV['DEBUG']
+        CowProxy.debug "wrap #{value.class.name} with parent #{self.class.name}"
         CowProxy.wrapper_class(value).new(value, self, inst_var)
+      end
+    end
+
+    def __wrapped_value__(inst_var, cow_enabled, target, method, *args, &block)
+      cow = cow_enabled
+      begin
+        CowProxy.debug "run on #{target.class.name} (#{target.object_id}) #{method} #{args.inspect unless args.empty?}"
+        value = target.__send__(method, *args, &block)
+        if inst_var && args.empty? && block.nil?
+          wrap_value = __wrap__(value, inst_var)
+          _instance_variable_set(inst_var, wrap_value) if wrap_value
+        end
+        wrap_value || value
+      rescue => e
+        raise unless cow && e.message =~ /^can't modify frozen/
+        CowProxy.debug "copy on write to run #{method} #{args.inspect unless args.empty?} (#{e.message})"
+        target = __copy_on_write__
+        CowProxy.debug "new target #{target.class.name} (#{target.object_id})"
+        cow = false
+        retry
+      ensure
+        # cleanup exception line for retry
+        $@.delete_if {|t| /\A#{Regexp.quote(__FILE__)}:#{__LINE__-3}:/o =~ t} if $@
       end
     end
 
