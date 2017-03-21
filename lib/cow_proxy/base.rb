@@ -92,20 +92,14 @@ module CowProxy
     end
 
     def __wrapped_value__(inst_var, cow_enabled, target, method, *args, &block)
-      cow = cow_enabled
-      begin
-        CowProxy.debug "run on #{target.class.name} (#{target.object_id}) #{method} #{args.inspect unless args.empty?}"
-        value = target.__send__(method, *args, &block)
-        wrap_value = __wrap__(value, inst_var) if inst_var && args.empty? && block.nil?
-        wrap_value || value
-      rescue => e
-        raise unless cow && e.message =~ /^can't modify frozen/
-        CowProxy.debug "copy on write to run #{method} #{args.inspect unless args.empty?} (#{e.message})"
-        target = __copy_on_write__
-        CowProxy.debug "new target #{target.class.name} (#{target.object_id})"
-        cow = false
-        retry
-      end
+      CowProxy.debug "run on #{target.class.name} (#{target.object_id}) #{method} #{args.inspect unless args.empty?}"
+      value = target.__send__(method, *args, &block)
+      wrap_value = __wrap__(value, inst_var) if inst_var && args.empty? && block.nil?
+      wrap_value || value
+    rescue => e
+      raise unless cow_enabled && e.message =~ /^can't modify frozen/
+      CowProxy.debug "copy on write to run #{method} #{args.inspect unless args.empty?} (#{e.message})"
+      __wrapped_value__(inst_var, false, __copy_on_write__, method, *args, &block)
     end
 
     alias :_instance_variable_get :instance_variable_get
