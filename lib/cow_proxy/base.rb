@@ -85,7 +85,9 @@ module CowProxy
     def __wrap__(value, inst_var = nil)
       if value.frozen?
         CowProxy.debug "wrap #{value.class.name} with parent #{self.class.name}"
-        CowProxy.wrapper_class(value).new(value, self, inst_var)
+        wrap_value = CowProxy.wrapper_class(value).new(value, self, inst_var)
+        _instance_variable_set(inst_var, wrap_value) if inst_var
+        wrap_value
       end
     end
 
@@ -94,10 +96,7 @@ module CowProxy
       begin
         CowProxy.debug "run on #{target.class.name} (#{target.object_id}) #{method} #{args.inspect unless args.empty?}"
         value = target.__send__(method, *args, &block)
-        if inst_var && args.empty? && block.nil?
-          wrap_value = __wrap__(value, inst_var)
-          _instance_variable_set(inst_var, wrap_value) if wrap_value
-        end
+        wrap_value = __wrap__(value, inst_var) if inst_var && args.empty? && block.nil?
         wrap_value || value
       rescue => e
         raise unless cow && e.message =~ /^can't modify frozen/
@@ -106,9 +105,6 @@ module CowProxy
         CowProxy.debug "new target #{target.class.name} (#{target.object_id})"
         cow = false
         retry
-      ensure
-        # cleanup exception line for retry
-        $@.delete_if {|t| /\A#{Regexp.quote(__FILE__)}:#{__LINE__-3}:/o =~ t} if $@
       end
     end
 
