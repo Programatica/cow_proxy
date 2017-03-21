@@ -78,7 +78,7 @@ module CowProxy
       end
       register_proxy klass, proxy_klass if register
       methods = klass.instance_methods
-      methods -= [:__copy_on_write__, :__wrap__, :__getobj__, :send, :===, :frozen?]
+      methods -= [:__copy_on_write__, :__wrap__, :__wrapped_value__, :__wrapped_method__, :__getobj__, :send, :===, :frozen?]
       methods -= proxy_superclass.wrapped_class.instance_methods if proxy_superclass.wrapped_class
       methods -= [:inspect] if ENV['DEBUG']
 
