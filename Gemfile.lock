@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    cow_proxy (0.1.0)
+    cow_proxy (0.1.1)
 
 GEM
   remote: https://rubygems.org/
