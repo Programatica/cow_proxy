@@ -34,7 +34,16 @@ module CowProxy
             CowProxy.debug "remove #{$1}"
             _remove_instance_variable "@#{$1}"
           end
-          __wrapped_value__(inst_var, cow_enabled, method, *args, &block)
+
+          begin
+            __wrapped_value__(inst_var, method, *args, &block)
+          rescue => e
+            raise unless cow_enabled && e.message =~ /^can't modify frozen/
+            CowProxy.debug "copy on write to run #{method} #{args.inspect unless args.empty?} (#{e.message})"
+            __copy_on_write__
+            CowProxy.debug "new target #{__getobj__.class.name} (#{__getobj__.object_id})"
+            __wrapped_value__(inst_var, method, *args, &block)
+          end
         end
       end
     end
@@ -77,7 +86,7 @@ module CowProxy
     end
 
     private
-    def __getobj__  # :nodoc:
+    def __getobj__
       @delegate_dc_obj
     end
 
@@ -90,17 +99,11 @@ module CowProxy
       end
     end
 
-    def __wrapped_value__(inst_var, cow_enabled, method, *args, &block)
+    def __wrapped_value__(inst_var, method, *args, &block)
       CowProxy.debug "run on #{__getobj__.class.name} (#{__getobj__.object_id}) #{method} #{args.inspect unless args.empty?}"
       value = __getobj__.__send__(method, *args, &block)
       wrap_value = __wrap__(value, inst_var) if inst_var && args.empty? && block.nil?
       wrap_value || value
-    rescue => e
-      raise unless cow_enabled && e.message =~ /^can't modify frozen/
-      CowProxy.debug "copy on write to run #{method} #{args.inspect unless args.empty?} (#{e.message})"
-      __copy_on_write__
-      CowProxy.debug "new target #{__getobj__.class.name} (#{__getobj__.object_id})"
-      __wrapped_value__(inst_var, false, method, *args, &block)
     end
 
     alias :_instance_variable_get :instance_variable_get
