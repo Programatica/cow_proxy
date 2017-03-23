@@ -84,8 +84,9 @@ module CowProxy
     def __wrap__(value, inst_var = nil)
       if value.frozen?
         CowProxy.debug { "wrap #{value.class.name} with parent #{__getobj__.class.name}" }
-        wrap_value = CowProxy.wrapper_class(value).new(value, self, inst_var)
-        _instance_variable_set(inst_var, wrap_value) if inst_var
+        wrap_klass = CowProxy.wrapper_class(value)
+        wrap_value = wrap_klass.new(value, self, inst_var) if wrap_klass
+        _instance_variable_set(inst_var, wrap_value) if inst_var && wrap_value
         wrap_value
       end
     end
@@ -100,6 +101,7 @@ module CowProxy
     def __wrapped_method__(inst_var, cow, method, *args, &block)
       __wrapped_value__(inst_var, method, *args, &block)
     rescue => e
+      CowProxy.debug { "error #{e.message} on #{__getobj__.class.name} (#{__getobj__.object_id}) #{method} #{args.inspect unless args.empty?} with#{'out' unless cow} cow" }
       raise unless cow && e.message =~ /^can't modify frozen/
       CowProxy.debug { "copy on write to run #{method} #{args.inspect unless args.empty?} (#{e.message})" }
       __copy_on_write__
