@@ -31,7 +31,7 @@ module CowProxy
           inst_var = "@#{method}" if method.to_s =~ /^\w+$/
           return _instance_variable_get(inst_var) if inst_var && _instance_variable_defined?(inst_var)
           if method.to_s =~ /^(\w+)=$/ && _instance_variable_defined?("@#{$1}")
-            CowProxy.debug "remove #{$1}"
+            CowProxy.debug { "remove #{$1}" }
             _remove_instance_variable "@#{$1}"
           end
           __wrapped_method__(inst_var, cow_enabled, method, *args, &block)
@@ -61,7 +61,7 @@ module CowProxy
     #   another CowProxy.
     # @return duplicated wrapped object
     def __copy_on_write__(parent = true)
-      CowProxy.debug "copy on write on #{__getobj__.class.name}"
+      CowProxy.debug { "copy on write on #{__getobj__.class.name}" }
       return @delegate_dc_obj if @dc_obj_duplicated
       @delegate_dc_obj = @delegate_dc_obj.dup.tap do |new_target|
         @dc_obj_duplicated = true
@@ -83,7 +83,7 @@ module CowProxy
 
     def __wrap__(value, inst_var = nil)
       if value.frozen?
-        CowProxy.debug "wrap #{value.class.name} with parent #{self.class.name}"
+        CowProxy.debug { "wrap #{value.class.name} with parent #{__getobj__.class.name}" }
         wrap_value = CowProxy.wrapper_class(value).new(value, self, inst_var)
         _instance_variable_set(inst_var, wrap_value) if inst_var
         wrap_value
@@ -91,7 +91,7 @@ module CowProxy
     end
 
     def __wrapped_value__(inst_var, method, *args, &block)
-      CowProxy.debug "run on #{__getobj__.class.name} (#{__getobj__.object_id}) #{method} #{args.inspect unless args.empty?}"
+      CowProxy.debug { "run on #{__getobj__.class.name} (#{__getobj__.object_id}) #{method} #{args.inspect unless args.empty?}" }
       value = __getobj__.__send__(method, *args, &block)
       wrap_value = __wrap__(value, inst_var) if inst_var && args.empty? && block.nil?
       wrap_value || value
@@ -101,9 +101,9 @@ module CowProxy
       __wrapped_value__(inst_var, method, *args, &block)
     rescue => e
       raise unless cow && e.message =~ /^can't modify frozen/
-      CowProxy.debug "copy on write to run #{method} #{args.inspect unless args.empty?} (#{e.message})"
+      CowProxy.debug { "copy on write to run #{method} #{args.inspect unless args.empty?} (#{e.message})" }
       __copy_on_write__
-      CowProxy.debug "new target #{__getobj__.class.name} (#{__getobj__.object_id})"
+      CowProxy.debug { "new target #{__getobj__.class.name} (#{__getobj__.object_id})" }
       __wrapped_value__(inst_var, method, *args, &block)
     end
 

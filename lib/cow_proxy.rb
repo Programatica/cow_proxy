@@ -41,7 +41,7 @@ module CowProxy
     #
     # @return proxy_klass
     def register_proxy(klass, proxy_klass)
-      debug "register proxy for #{klass} with #{proxy_klass} < #{proxy_klass.superclass}" unless @@wrapper_classes[klass]
+      debug { "register proxy for #{klass} with #{proxy_klass} < #{proxy_klass.superclass}" } unless @@wrapper_classes[klass]
       @@wrapper_classes[klass] ||= proxy_klass
     end
 
@@ -73,16 +73,21 @@ module CowProxy
     end
 
     # Print debug line if debug is enabled (ENV['DEBUG'] true)
+    # Accepts a block instead of line, so interpolation is skipped
+    # when debug is disabled
+    #
     # @param [String] line debug line to print
     # @return nil
-    def debug(line)
-      Kernel.puts line if ENV['DEBUG']
+    def debug(line = nil)
+      return unless ENV['DEBUG']
+      line ||= yield if block_given?
+      Kernel.puts line
     end
 
     private
     def _WrapClass(klass, cow = true, register = false)
       proxy_superclass = get_proxy_klass_for(klass.superclass) || Base
-      debug "create new proxy class for #{klass}#{" from #{proxy_superclass}" if proxy_superclass}"
+      debug { "create new proxy class for #{klass}#{" from #{proxy_superclass}" if proxy_superclass}" }
       proxy_klass = Class.new(proxy_superclass) do |k|
         k.wrapped_class = klass
       end
