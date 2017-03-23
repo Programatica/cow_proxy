@@ -1,3 +1,7 @@
+= 0.1.2
+- Fix creating string from wrapped string
+- Fix some infinite loop
+
 = 0.1.1
 - Refactoring and code cleanup
 
