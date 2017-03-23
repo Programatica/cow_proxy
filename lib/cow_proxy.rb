@@ -14,7 +14,7 @@
 module CowProxy
   class << self
     # @!visibility private
-    @@wrapper_classes = {}
+    @@wrapper_classes = {Integer: nil, Float: nil, Symbol: nil, TrueClass: nil, FalseClass: nil, NilClass: nil}
 
     # Create new proxy class for klass, with copy on write enabled.
     #
@@ -35,6 +35,9 @@ module CowProxy
     # Register proxy to be used when wrapping an object of klass.
     #
     # It's called automatically when inheriting from class returned by WrapClass
+    # Can be called with nil proxy_klass to disable wrapping objects of klass, for
+    # example Integer is registered with nil because there is no point in wrapping
+    # immutable classes.
     #
     # @return proxy_klass
     def register_proxy(klass, proxy_klass)
@@ -44,11 +47,14 @@ module CowProxy
 
     # Returns a proxy wrapping obj, using registered class for obj's class.
     # If no class is registered for obj's class, it uses default proxy, without
-    # copy on write
+    # copy on write.
+    #
+    # If class is registered with nil Proxy, return obj.
     #
     # @return wrapped obj with CowProxy class
     def wrap(obj)
-      wrapper_class(obj).new(obj)
+      klass = wrapper_class(obj)
+      klass ? klass.new(obj) : obj
     end
 
     # Returns proxy wrapper class for obj.
@@ -59,7 +65,11 @@ module CowProxy
     #   if none is registered
     def wrapper_class(obj)
       # only classes with defined wrapper and Structs has COW enabled by default
-      @@wrapper_classes[obj.class] || _WrapClass(obj.class, obj.class < Struct, true)
+      if @@wrapper_classes.has_key?(obj.class)
+        @@wrapper_classes[obj.class]
+      else
+        _WrapClass(obj.class, obj.class < Struct, true)
+      end
     end
 
     # Print debug line if debug is enabled (ENV['DEBUG'] true)
