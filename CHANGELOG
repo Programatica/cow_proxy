@@ -1,6 +1,11 @@
+= 0.1.3
+- Fix for returning immutable class from CowProxy
+- Added Fixnum and Bignum to non-proxied classes for ruby < 2.4
+
 = 0.1.2
 - Fix creating string from wrapped string
 - Fix some infinite loop
+- Avoid proxying immutable classes
 
 = 0.1.1
 - Refactoring and code cleanup

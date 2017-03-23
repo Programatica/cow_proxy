@@ -41,7 +41,7 @@ module CowProxy
     #
     # @return proxy_klass
     def register_proxy(klass, proxy_klass)
-      debug { "register proxy for #{klass} with #{proxy_klass} < #{proxy_klass.superclass}" } unless @@wrapper_classes[klass]
+      debug { "register proxy for #{klass} with #{proxy_klass}#{" < #{proxy_klass.superclass}" if proxy_klass}" } unless @@wrapper_classes[klass]
       @@wrapper_classes[klass] ||= proxy_klass
     end
 
@@ -121,6 +121,12 @@ module CowProxy
   end
 end
 
+if defined? Fixnum
+  CowProxy.register_proxy Fixnum, nil
+end
+if defined? Bignum
+  CowProxy.register_proxy Bignum, nil
+end
 require 'cow_proxy/base.rb'
 require 'cow_proxy/indexable.rb'
 require 'cow_proxy/array.rb'
