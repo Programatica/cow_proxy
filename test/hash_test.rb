@@ -25,6 +25,10 @@ describe CowProxy do
       @var[:c].must_equal @origin[:c]
     end
 
+    it 'allow to be merged' do
+      {}.merge @proxy
+    end
+
     it 'copy on write on mutable methods on child' do
       @proxy.must_equal @var
 

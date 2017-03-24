@@ -25,6 +25,10 @@ describe CowProxy do
       @var[2].must_equal @origin[2]
     end
 
+    it 'allow to be used with concat' do
+      [].concat @proxy
+    end
+
     it 'copy on write on mutable methods on child' do
       @proxy.must_equal @origin
 

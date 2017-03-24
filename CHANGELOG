@@ -1,4 +1,7 @@
+= 0.1.4
 - Fix avoid proxying immutable classes
+- Fix concat with proxy array
+- Fix merge with proxy hash
 
 = 0.1.3
 - Fix for returning immutable class from CowProxy
