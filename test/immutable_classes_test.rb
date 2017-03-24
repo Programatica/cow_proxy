@@ -2,32 +2,37 @@ require 'test_helper'
 
 describe CowProxy do
   describe 'proxy integers' do
-    before do
-      @var = 1
-      @proxy = CowProxy.wrap(@var)
+    it 'doesnt wrap' do
+      refute CowProxy::Base === CowProxy.wrap(1)
     end
+  end
 
-    it 'delegates methods' do
-      @proxy.must_equal @var
-      (@proxy + 1).must_equal 2
-      @var.must_equal 1
+  describe 'proxy floats' do
+    it 'doesnt wrap' do
+      refute CowProxy::Base === CowProxy.wrap(1.0)
+    end
+  end
+
+  describe 'proxy symbols' do
+    it 'doesnt wrap' do
+      refute CowProxy::Base === CowProxy.wrap(:symbol)
+    end
+  end
+
+  describe 'proxy nil' do
+    it 'doesnt wrap' do
+      refute CowProxy::Base === CowProxy.wrap(nil)
     end
   end
 
   describe 'proxy boolean' do
-    before do
-      @var = true
-      @proxy = CowProxy.wrap(@var)
-    end
-
-    it 'delegates methods' do
-      @proxy.must_equal @var
-      (!@proxy).must_equal false
-      @var.must_equal true
+    it 'doesnt wrap' do
+      refute CowProxy::Base === CowProxy.wrap(true)
+      refute CowProxy::Base === CowProxy.wrap(false)
     end
   end
 
-  describe 'proxy struct with unmutable objects' do
+  describe 'proxy struct with immutable objects' do
     before do
       @var = Struct.new(:int, :bool).new(1, true).freeze
       @proxy = CowProxy.wrap(@var)

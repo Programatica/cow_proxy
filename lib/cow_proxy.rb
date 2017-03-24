@@ -14,7 +14,7 @@
 module CowProxy
   class << self
     # @!visibility private
-    @@wrapper_classes = {Integer: nil, Float: nil, Symbol: nil, TrueClass: nil, FalseClass: nil, NilClass: nil}
+    @@wrapper_classes = {}
 
     # Create new proxy class for klass, with copy on write enabled.
     #
@@ -121,12 +121,17 @@ module CowProxy
   end
 end
 
+# no proxy klass for immutable classes
+[Integer, Float, Symbol, TrueClass, FalseClass, NilClass].each do |klass|
+  CowProxy.register_proxy klass, nil
+end
 if defined? Fixnum
   CowProxy.register_proxy Fixnum, nil
 end
 if defined? Bignum
   CowProxy.register_proxy Bignum, nil
 end
+
 require 'cow_proxy/base.rb'
 require 'cow_proxy/indexable.rb'
 require 'cow_proxy/array.rb'
