@@ -121,11 +121,15 @@ describe CowProxy do
 
     it 'change child on select! and each with mutable method' do
       @proxy[2] << 's'
-      @proxy.select! { |item| item << 's' if item.is_a? String }
+      refute_nil @proxy.select! { |item| item << 's' if item.is_a? String }
       @proxy.each(&:upcase!)
       @var.must_equal @origin
       @proxy.wont_equal @origin
       @proxy.must_equal [(@origin[2] + 'ss').upcase]
+    end
+
+    it 'returns nil when select! with true' do
+      assert_nil @proxy.select! { |item| true }
     end
 
     it 'change child on keep_if and each with mutable method' do
@@ -137,14 +141,10 @@ describe CowProxy do
     end
 
     it 'change child on map! with mutable method' do
-      refute_nil@proxy.map! { |item| item.is_a?(String) ? item.upcase! : item }
+      @proxy.map! { |item| item.is_a?(String) ? item.upcase! : item }
       @var.must_equal @origin
       @proxy.wont_equal @origin
       @proxy[2].must_equal @origin[2].upcase
-    end
-
-    it 'change child on map! with no change returns nil' do
-      assert_nil @proxy.map! { |item| item }
     end
   end
 end
