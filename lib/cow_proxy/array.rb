@@ -11,7 +11,7 @@ module CowProxy
     # @return [CowProxy::Array] self if block given
     # @return [Enumerator] if no block given
     def each(&block)
-      return enum_for(:map!) unless block_given?
+      return enum_for(:each) unless block_given?
       __getobj__.each.with_index do |_, i|
         yield self[i]
       end
