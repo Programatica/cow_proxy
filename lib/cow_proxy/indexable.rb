@@ -36,7 +36,7 @@ module CowProxy
           @hash.each do |k, v|
             __getobj__[k] = v
           end
-          @hash = nil
+          @hash.clear
         end
       end
     end

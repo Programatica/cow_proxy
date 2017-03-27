@@ -88,5 +88,63 @@ describe CowProxy do
       @proxy[1].must_be_nil
       @var.must_equal @origin
     end
+    
+    it 'change child on each with mutable method' do
+      @proxy.each { |item| item.upcase! if item.is_a? String }
+      @proxy.wont_equal @origin
+      @var.must_equal @origin
+      @proxy[2].must_equal @origin[2].upcase
+    end
+
+    it 'change child on each.with_index with mutable method' do
+      @proxy.each.with_index { |item| item.upcase! if item.is_a? String }
+      @proxy.wont_equal @origin
+      @var.must_equal @origin
+      @proxy[2].must_equal @origin[2].upcase
+    end
+
+    it 'change child on map with mutable method' do
+      result = @proxy.map { |item| item.is_a?(Integer) ? item + 1 : item }
+      @proxy.must_equal @origin
+      @var.must_equal @origin
+      result.wont_equal @origin
+      result[0].must_equal @origin[0] + 1
+      result[2].upcase!.must_equal @origin[2].upcase
+    end
+
+    it 'change child on select and each with mutable method' do
+      result = @proxy.select { |item| item.is_a? String }.each(&:upcase!)
+      @var.must_equal @origin
+      @proxy.wont_equal @origin
+      result.must_equal [@origin[2].upcase]
+    end
+
+    it 'change child on select! and each with mutable method' do
+      @proxy[2] << 's'
+      @proxy.select! { |item| item << 's' if item.is_a? String }
+      @proxy.each(&:upcase!)
+      @var.must_equal @origin
+      @proxy.wont_equal @origin
+      @proxy.must_equal [(@origin[2] + 'ss').upcase]
+    end
+
+    it 'change child on keep_if and each with mutable method' do
+      @proxy.keep_if { |item| item << 's' if item.is_a? String }
+      @proxy.each(&:upcase!)
+      @var.must_equal @origin
+      @proxy.wont_equal @origin
+      @proxy.must_equal [(@origin[2] + 's').upcase]
+    end
+
+    it 'change child on map! with mutable method' do
+      refute_nil@proxy.map! { |item| item.is_a?(String) ? item.upcase! : item }
+      @var.must_equal @origin
+      @proxy.wont_equal @origin
+      @proxy[2].must_equal @origin[2].upcase
+    end
+
+    it 'change child on map! with no change returns nil' do
+      assert_nil @proxy.map! { |item| item }
+    end
   end
 end
