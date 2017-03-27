@@ -1,4 +1,5 @@
 module CowProxy
+  # Wrapper class for Array
   class Array < WrapClass(::Array)
     include Indexable
     include Enumerable
@@ -10,7 +11,7 @@ module CowProxy
     # @yieldparam item Wrapped item in self
     # @return [CowProxy::Array] self if block given
     # @return [Enumerator] if no block given
-    def each(&block)
+    def each
       return enum_for(:each) unless block_given?
       __getobj__.each.with_index do |_, i|
         yield self[i]
@@ -26,10 +27,10 @@ module CowProxy
     # @yieldreturn item to replace
     # @return [CowProxy::Array] self if block given
     # @return [Enumerator] if no block given
-    def map!(&block)
+    def map!
       __copy_on_write__
       return enum_for(:map!) unless block_given?
-      __getobj__.each.with_index do |item, i|
+      __getobj__.each.with_index do |_, i|
         self[i] = yield(self[i])
       end
     end
@@ -61,7 +62,7 @@ module CowProxy
     # @return [Enumerator] if no block given
     def select!(&block)
       size = __getobj__.size
-      keep_if &block
+      keep_if(&block)
       self unless __getobj__.size == size
     end
 
@@ -89,7 +90,7 @@ module CowProxy
     # @return [Enumerator] if no block given
     def reject!(&block)
       size = __getobj__.size
-      delete_if &block
+      delete_if(&block)
       self unless __getobj__.size == size
     end
 
@@ -101,5 +102,4 @@ module CowProxy
       __getobj__
     end
   end
-
 end
