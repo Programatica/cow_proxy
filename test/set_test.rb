@@ -21,5 +21,16 @@ describe CowProxy do
       @proxy.size.must_equal @origin.size + 1
       @var.size.must_equal @origin.size
     end
+
+    it 'copy on write on select!' do
+      refute_nil @proxy.select! { |item| item.is_a? String }
+      @var.must_equal @origin
+      @proxy.wont_equal @origin
+    end
+
+    it 'returns nil when select! with true' do
+      assert_nil @proxy.select! { |_| true }
+      @proxy.must_equal @origin
+    end
   end
 end
