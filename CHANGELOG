@@ -1,3 +1,6 @@
+= 0.2.0
+- Support wrapping block params for enumerator methods in Array and Hash
+
 = 0.1.4
 - Fix avoid proxying immutable classes
 - Fix concat with proxy array
