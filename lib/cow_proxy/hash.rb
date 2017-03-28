@@ -2,6 +2,7 @@ module CowProxy
   # Wrapper class for Hash
   class Hash < WrapClass(::Hash)
     include Indexable
+    include ::Enumerable
     include Enumerable
 
     # Calls block once for each key in hash, passing the key-value pair
@@ -57,62 +58,6 @@ module CowProxy
     # @return [Array] Wrapped values from hash
     def values
       map(&:last)
-    end
-
-    # Deletes every key-value pair from hash for which block evaluates to false.
-    #
-    # @yield [pair] Gives each key-value pair in self to the block
-    # @yieldparam pair Array of key and wrapped value
-    # @yieldreturn [Boolean] true if item must be kept
-    # @return [CowProxy::Hash] self if block given
-    # @return [Enumerator] if no block given
-    def keep_if(&block)
-      @delegate_dc_obj = select(&block).tap do
-        @dc_obj_duplicated = true
-      end
-      self
-    end
-
-    # Deletes every key-value pair from hash for which block evaluates to false.
-    #
-    # @yield [pair] Gives each key-value pair in self to the block
-    # @yieldparam pair Array of key and wrapped value
-    # @yieldreturn [Boolean] true if item must be kept
-    # @return [CowProxy::Hash] self if block given and changes were made
-    # @return [nil] if block given and no changes were made
-    # @return [Enumerator] if no block given
-    def select!(&block)
-      size = __getobj__.size
-      keep_if(&block)
-      self unless __getobj__.size == size
-    end
-
-    # Deletes every key-value pair from hsh for which block evaluates to true.
-    #
-    # @yield [pair] Gives each key-value pair in self to the block
-    # @yieldparam pair Array of key and wrapped value
-    # @yieldreturn [Boolean] true if item must be deleted
-    # @return [CowProxy::Hash] self if block given
-    # @return [Enumerator] if no block given
-    def delete_if(&block)
-      @delegate_dc_obj = reject(&block).tap do
-        @dc_obj_duplicated = true
-      end
-      self
-    end
-
-    # Deletes every key-value pair from hsh for which block evaluates to true.
-    #
-    # @yield [pair] Gives each key-value pair in self to the block
-    # @yieldparam pair Array of key and wrapped value
-    # @yieldreturn [Boolean] true if item must be deleted
-    # @return [CowProxy::Hash] self if block given and changes were made
-    # @return [nil] if block given and no changes were made
-    # @return [Enumerator] if no block given
-    def reject!(&block)
-      size = __getobj__.size
-      delete_if(&block)
-      self unless __getobj__.size == size
     end
 
     # Used for merging into another Hash

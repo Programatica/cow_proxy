@@ -2,6 +2,7 @@ module CowProxy
   # Wrapper class for Array
   class Array < WrapClass(::Array)
     include Indexable
+    include ::Enumerable
     include Enumerable
 
     # Calls the given block once for each element in self,
@@ -35,68 +36,6 @@ module CowProxy
       end
     end
     alias collect! map!
-
-    # Invokes the given block passing in successive elements from self,
-    # deleting elements for which the block returns a false value.
-    #
-    # @yield [item] Gives each element in self to the block
-    # @yieldparam item Wrapped item in self
-    # @yieldreturn [Boolean] true if item must be kept
-    # @return [CowProxy::Array] self if block given
-    # @return [Enumerator] if no block given
-    def keep_if(&block)
-      return select unless block
-      @delegate_dc_obj = select(&block).tap do
-        @dc_obj_duplicated = true
-      end
-      self
-    end
-
-    # Invokes the given block passing in successive elements from self,
-    # deleting elements for which the block returns a false value.
-    #
-    # @yield [item] Gives each element in self to the block
-    # @yieldparam item Wrapped item in self
-    # @yieldreturn [Boolean] true if item must be kept
-    # @return [CowProxy::Array] self if block given and changes were made
-    # @return [nil] if block given and no changes were made
-    # @return [Enumerator] if no block given
-    def select!(&block)
-      return keep_if unless block
-      size = __getobj__.size
-      keep_if(&block)
-      self unless __getobj__.size == size
-    end
-
-    # Deletes every element of self for which block evaluates to true.
-    #
-    # @yield [item] Gives each element in self to the block
-    # @yieldparam item Wrapped item in self
-    # @yieldreturn [Boolean] true if item must be deleted
-    # @return [CowProxy::Array] self if block given
-    # @return [Enumerator] if no block given
-    def delete_if(&block)
-      return reject unless block
-      @delegate_dc_obj = reject(&block).tap do
-        @dc_obj_duplicated = true
-      end
-      self
-    end
-
-    # Deletes every element of self for which block evaluates to true.
-    #
-    # @yield [item] Gives each element in self to the block
-    # @yieldparam item Wrapped item in self
-    # @yieldreturn [Boolean] true if item must be deleted
-    # @return [CowProxy::Array] self if block given and changes were made
-    # @return [nil] if block given and no changes were made
-    # @return [Enumerator] if no block given
-    def reject!(&block)
-      return delete_if unless block
-      size = __getobj__.size
-      delete_if(&block)
-      self unless __getobj__.size == size
-    end
 
     # Used for concatenating into another Array
     # needs to return unwrapped Array

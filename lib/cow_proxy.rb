@@ -12,6 +12,8 @@
 #   proxy = CowProxy.wrap(obj)
 
 module CowProxy
+  autoload :Enumerable, 'cow_proxy/enumerable.rb'
+  autoload :Indexable, 'cow_proxy/indexable.rb'
   class << self
     # @!visibility private
     @@wrapper_classes = {}
@@ -133,7 +135,6 @@ if defined? Bignum
 end
 
 require 'cow_proxy/base.rb'
-require 'cow_proxy/indexable.rb'
 require 'cow_proxy/array.rb'
 require 'cow_proxy/hash.rb'
 require 'cow_proxy/string.rb'
