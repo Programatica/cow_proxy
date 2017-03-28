@@ -45,6 +45,7 @@ module CowProxy
     # @return [CowProxy::Array] self if block given
     # @return [Enumerator] if no block given
     def keep_if(&block)
+      return select unless block
       @delegate_dc_obj = select(&block).tap do
         @dc_obj_duplicated = true
       end
@@ -61,6 +62,7 @@ module CowProxy
     # @return [nil] if block given and no changes were made
     # @return [Enumerator] if no block given
     def select!(&block)
+      return keep_if unless block
       size = __getobj__.size
       keep_if(&block)
       self unless __getobj__.size == size
@@ -74,6 +76,7 @@ module CowProxy
     # @return [CowProxy::Array] self if block given
     # @return [Enumerator] if no block given
     def delete_if(&block)
+      return reject unless block
       @delegate_dc_obj = reject(&block).tap do
         @dc_obj_duplicated = true
       end
@@ -89,6 +92,7 @@ module CowProxy
     # @return [nil] if block given and no changes were made
     # @return [Enumerator] if no block given
     def reject!(&block)
+      return delete_if unless block
       size = __getobj__.size
       delete_if(&block)
       self unless __getobj__.size == size

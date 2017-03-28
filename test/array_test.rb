@@ -88,7 +88,7 @@ describe CowProxy do
       @proxy[1].must_be_nil
       @var.must_equal @origin
     end
-    
+
     it 'change child on each with mutable method' do
       @proxy.each { |item| item.upcase! if item.is_a? String }
       @proxy.wont_equal @origin
@@ -129,11 +129,48 @@ describe CowProxy do
     end
 
     it 'returns nil when select! with true' do
-      assert_nil @proxy.select! { |item| true }
+      assert_nil @proxy.select! { |_| true }
+      @proxy.must_equal @origin
     end
 
     it 'change child on keep_if and each with mutable method' do
       @proxy.keep_if { |item| item << 's' if item.is_a? String }
+      @proxy.each(&:upcase!)
+      @var.must_equal @origin
+      @proxy.wont_equal @origin
+      @proxy.must_equal [(@origin[2] + 's').upcase]
+    end
+
+    it 'change child on reject! and each with mutable method' do
+      result = @proxy.reject! do |item|
+        if item.is_a? String
+          item << 's'
+          false
+        else
+          true
+        end
+      end
+      refute_nil result
+      @proxy.each(&:upcase!)
+      @var.must_equal @origin
+      @proxy.wont_equal @origin
+      @proxy.must_equal [(@origin[2] + 's').upcase]
+    end
+
+    it 'returns nil when reject! with false' do
+      assert_nil @proxy.reject! { |_| false }
+      @proxy.must_equal @origin
+    end
+
+    it 'change child on delete_if and each with mutable method' do
+      @proxy.delete_if do |item|
+        if item.is_a? String
+          item << 's'
+          false
+        else
+          true
+        end
+      end
       @proxy.each(&:upcase!)
       @var.must_equal @origin
       @proxy.wont_equal @origin
