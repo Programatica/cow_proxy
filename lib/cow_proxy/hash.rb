@@ -34,10 +34,21 @@ module CowProxy
     #
     # @yield [pair] Gives each key-value pair in self to the block
     # @yieldparam pair Array of key and wrapped value
-    # @yieldreturn [Boolean] true if item must be kept
+    # @yieldreturn [Boolean] true if item must be included
     # @return [CowProxy::Hash] self if block given
     # @return [Enumerator] if no block given
     def select
+      ::Hash[super]
+    end
+
+    # Returns a new hash consisting of entries for which the block returns false.
+    #
+    # @yield [pair] Gives each key-value pair in self to the block
+    # @yieldparam pair Array of key and wrapped value
+    # @yieldreturn [Boolean] true if item must not be included
+    # @return [CowProxy::Hash] self if block given
+    # @return [Enumerator] if no block given
+    def reject
       ::Hash[super]
     end
 
@@ -84,7 +95,7 @@ module CowProxy
     # @return [CowProxy::Hash] self if block given
     # @return [Enumerator] if no block given
     def delete_if(&block)
-      @delegate_dc_obj = select(&block).tap do
+      @delegate_dc_obj = reject(&block).tap do
         @dc_obj_duplicated = true
       end
       self

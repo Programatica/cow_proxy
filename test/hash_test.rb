@@ -103,7 +103,7 @@ describe CowProxy do
     end
 
     it 'change child on loop' do
-      @proxy.each.with_index { |(_, item), _| item.upcase! if item.is_a? String }
+      @proxy.each.with_index { |(_, i), _| i.upcase! if i.is_a? String }
       @proxy.wont_equal @origin
       @var.must_equal @origin
       @proxy[:c].must_equal @origin[:c].upcase
@@ -144,6 +144,42 @@ describe CowProxy do
       @var.must_equal @origin
       @proxy.wont_equal @origin
       @proxy[:c].must_equal @origin[:c].upcase
+    end
+
+    it 'change child on reject! and each with mutable method' do
+      result = @proxy.reject! do |_, item|
+        if item.is_a? String
+          item << 's'
+          false
+        else
+          true
+        end
+      end
+      refute_nil result
+      @proxy.values.each(&:upcase!)
+      @var.must_equal @origin
+      @proxy.wont_equal @origin
+      @proxy.must_equal c: (@origin[:c] + 's').upcase
+    end
+
+    it 'returns nil when reject! with false' do
+      assert_nil @proxy.reject! { |_| false }
+      @proxy.must_equal @origin
+    end
+
+    it 'change child on delete_if and each with mutable method' do
+      @proxy.delete_if do |_, item|
+        if item.is_a? String
+          item << 's'
+          false
+        else
+          true
+        end
+      end
+      @proxy.values.each(&:upcase!)
+      @var.must_equal @origin
+      @proxy.wont_equal @origin
+      @proxy.must_equal c: (@origin[:c] + 's').upcase
     end
   end
 end
