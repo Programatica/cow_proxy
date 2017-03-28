@@ -3,7 +3,7 @@ require 'test_helper'
 describe CowProxy do
   describe 'proxy string' do
     before do
-      @origin = 'var'
+      @origin = 'size'
       @var = @origin.dup.freeze
       @proxy = CowProxy.wrap(@var)
     end
@@ -24,6 +24,10 @@ describe CowProxy do
 
       @proxy.size.must_equal @origin.size + 1
       @var.size.must_equal @origin.size
+    end
+    
+    it 'allow to send with wrapped string' do
+      @origin.send(@proxy).must_equal 4
     end
   end
 end
