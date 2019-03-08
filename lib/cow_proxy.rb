@@ -127,11 +127,16 @@ end
 [Integer, Float, Symbol, TrueClass, FalseClass, NilClass].each do |klass|
   CowProxy.register_proxy klass, nil
 end
-if defined? Fixnum
-  CowProxy.register_proxy Fixnum, nil
-end
-if defined? Bignum
-  CowProxy.register_proxy Bignum, nil
+
+if 1.class == Integer
+  CowProxy.register_proxy Integer, nil
+else
+  if defined? Fixnum
+    CowProxy.register_proxy Fixnum, nil
+  end
+  if defined? Bignum
+    CowProxy.register_proxy Bignum, nil
+  end
 end
 
 require 'cow_proxy/base.rb'
