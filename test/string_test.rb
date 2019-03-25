@@ -26,6 +26,15 @@ describe CowProxy do
       @var.size.must_equal @origin.size
     end
     
+    it 'allow to use in interpolation' do
+      "#{@proxy}".must_equal @origin
+    end
+
+    it 'allow to use in interpolation after being mutated' do
+      @proxy << 's'
+      "#{@proxy}".must_equal @origin + 's'
+    end
+    
     it 'allow to send with wrapped string' do
       @origin.send(@proxy).must_equal 4
     end
