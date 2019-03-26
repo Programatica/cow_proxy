@@ -113,6 +113,6 @@ module CowProxy
     alias :_instance_variable_set :instance_variable_set
     alias :_remove_instance_variable :remove_instance_variable
     alias :_instance_variable_defined? :instance_variable_defined?
-    alias :_instance_variables? :instance_variable_defined?
+    alias :_instance_variables :instance_variables
   end
 end
