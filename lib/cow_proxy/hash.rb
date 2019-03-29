@@ -74,5 +74,13 @@ module CowProxy
     def to_hash
       __getobj__
     end
+
+    # Compute a hash-code for this hash. Two hashes with the same content
+    # will have the same hash code (and will compare using eql?).
+    #
+    # @return [Intenger] calculated hash code
+    def hash
+      __getobj__.hash
+    end
   end
 end

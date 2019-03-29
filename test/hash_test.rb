@@ -30,6 +30,8 @@ describe CowProxy do
 
       @proxy.keys.must_equal @origin.keys
       @proxy.values.must_equal @origin.values
+
+      @proxy.hash.must_equal @origin.hash
     end
 
     it 'allow to be merged' do
@@ -106,20 +108,24 @@ describe CowProxy do
 
     it 'copy on write on mutable methods on child and then replace' do
       @proxy.must_equal @origin
+      @proxy.hash.must_equal @origin.hash
 
       @proxy[:c] << 's'
       @proxy[:c].must_equal @origin[:c] + 's'
       @var[:c].must_equal @origin[:c]
+      @proxy.hash.wont_equal @origin.hash
 
       @proxy.update b: 'last'
       @proxy[:c].must_equal @origin[:c] + 's'
       @proxy[:b].must_equal 'last'
       @var[:b].must_equal @origin[:b]
+      @proxy.hash.wont_equal @origin.hash
     end
 
     it 'change child on loop' do
       @proxy.each.with_index { |(_, i), _| i.upcase! if i.is_a? String }
       @proxy.wont_equal @origin
+      @proxy.hash.wont_equal @origin.hash
       @var.must_equal @origin
       @proxy[:c].must_equal @origin[:c].upcase
     end
@@ -218,6 +224,10 @@ describe CowProxy do
 
       @proxy.dig(:test2, 0).must_equal(1)
       assert_nil @proxy.dig(:test2, 1)
+    end
+
+    it 'allow union of array with other array' do
+      ([1, false] | [@proxy]).must_equal([1, false, @proxy])
     end
   end
 end

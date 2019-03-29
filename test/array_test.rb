@@ -199,5 +199,9 @@ describe CowProxy do
     it 'grep return wrapped string' do
       @proxy.grep(String).must_equal ['var']
     end
+
+    it 'allow union with other array' do
+      ([1, false] | @proxy).must_equal([1, false] | @origin)
+    end
   end
 end
