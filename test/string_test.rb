@@ -38,5 +38,9 @@ describe CowProxy do
     it 'allow to send with wrapped string' do
       @origin.send(@proxy).must_equal 4
     end
+
+    it 'is string for case equality' do
+      assert String === @proxy
+    end
   end
 end

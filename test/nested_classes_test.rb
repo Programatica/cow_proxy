@@ -23,6 +23,8 @@ describe CowProxy do
       @proxy.b.must_equal @origin.b
       (@proxy.b[1].o[:rows] + 1).must_equal @origin.b[1].o[:rows] + 1
       @var.b.must_equal @origin.b
+
+      @proxy.dig(:b, 0, :o, :size).must_equal @origin.b[0].o[:size]
     end
 
     it 'copy on write on assign' do
@@ -35,6 +37,9 @@ describe CowProxy do
 
     it 'copy on write on mutable methods on child' do
       @proxy.b << 2
+      @proxy.b[@origin.size].must_equal 2
+      @proxy.b.dig(@origin.size).must_equal 2
+      @proxy.dig(:b, @origin.size).must_equal 2
 
       @proxy.a.must_equal @origin.a
       @proxy.b.wont_equal @origin.b

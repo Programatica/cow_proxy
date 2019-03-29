@@ -60,6 +60,13 @@ module CowProxy
       map(&:last)
     end
 
+    # Returns true if the given key is present in hash.
+    #
+    # @return [Array] Wrapped values from hash
+    def include?(key)
+      has_key?(key)
+    end
+
     # Used for merging into another Hash
     # needs to return unwrapped Hash
     #

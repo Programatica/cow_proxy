@@ -23,6 +23,13 @@ describe CowProxy do
       @proxy[:c].must_equal @origin[:c]
       (@proxy[:c] + 's').must_equal @origin[:c] + 's'
       @var[:c].must_equal @origin[:c]
+
+      assert @proxy.key?(:a)
+      assert @proxy.has_key?(:a)
+      assert @proxy.include?(:a)
+
+      @proxy.keys.must_equal @origin.keys
+      @proxy.values.must_equal @origin.values
     end
 
     it 'allow to be merged' do
@@ -56,18 +63,26 @@ describe CowProxy do
       @proxy[:a] = false
       @proxy.must_equal @origin.merge(b: 2, a: false)
       @var.must_equal @origin
+      @proxy[:b].must_equal 2
+      @proxy.dig(:b).must_equal 2
     end
 
     it 'copy on write on operation and assign' do
       @proxy[:a] += 2
       @proxy.must_equal @origin.merge(a: @origin[:a] + 2)
       @var.must_equal @origin
+      @proxy[:a].must_equal @origin[:a] + 2
+      @proxy.dig(:a).must_equal @origin[:a] + 2
     end
 
     it 'copy on write on add' do
       @proxy.update d: 'last'
       @proxy.size.must_equal @origin.size + 1
       @var.size.must_equal @origin.size
+      assert @proxy.key?(:d)
+      assert @proxy.has_key?(:d)
+      assert @proxy.include?(:d)
+      @proxy.dig(:d).must_equal 'last'
     end
 
     it 'copy on write on replace' do
@@ -128,6 +143,7 @@ describe CowProxy do
       @var.must_equal @origin
       @proxy.wont_equal @origin
       @proxy[:c].must_equal @origin[:c].upcase
+      @proxy.keys.must_equal @origin.keys
     end
 
     it 'change child on select! and each with mutable method' do
@@ -137,6 +153,7 @@ describe CowProxy do
       @var.must_equal @origin
       @proxy.wont_equal @origin
       @proxy.must_equal c: (@origin[:c] + 'ss').upcase
+      @proxy.keys.must_equal [:c]
     end
 
     it 'change child on keep_if and each on values with mutable method' do
@@ -144,6 +161,7 @@ describe CowProxy do
       @var.must_equal @origin
       @proxy.wont_equal @origin
       @proxy[:c].must_equal @origin[:c].upcase
+      @proxy.keys.must_equal [:c]
     end
 
     it 'change child on reject! and each with mutable method' do
@@ -160,10 +178,17 @@ describe CowProxy do
       @var.must_equal @origin
       @proxy.wont_equal @origin
       @proxy.must_equal c: (@origin[:c] + 's').upcase
+
+      @proxy.keys.must_equal [:c]
+      refute @proxy.include? :a
+      refute @proxy.key? :a
+      refute @proxy.has_key? :a
+      assert_nil @proxy.dig(:a)
+      assert_nil @proxy[:a]
     end
 
     it 'returns nil when reject! with false' do
-      assert_nil @proxy.reject! { |_| false }
+      assert_nil(@proxy.reject! { |_| false })
       @proxy.must_equal @origin
     end
 
@@ -180,6 +205,19 @@ describe CowProxy do
       @var.must_equal @origin
       @proxy.wont_equal @origin
       @proxy.must_equal c: (@origin[:c] + 's').upcase
+      @proxy.keys.must_equal [:c]
+    end
+
+    it 'adds data on merge!' do
+      @proxy.merge! test: true, test2: [1]
+
+      assert @proxy.dig(:test)
+      assert @proxy.include? :test
+      assert @proxy.key? :test
+      assert @proxy.has_key? :test
+
+      @proxy.dig(:test2, 0).must_equal(1)
+      assert_nil @proxy.dig(:test2, 1)
     end
   end
 end

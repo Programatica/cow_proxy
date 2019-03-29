@@ -13,16 +13,22 @@ describe CowProxy do
       @proxy.size.must_equal @origin.size
 
       @proxy[0].must_equal @origin[0]
+      @proxy.dig(0).must_equal @origin[0]
       (@proxy[0] + 1).must_equal @origin[0] + 1
       @var[0].must_equal @origin[0]
 
       @proxy[1].must_equal @origin[1]
+      @proxy.dig(1).must_equal @origin[1]
       (!@proxy[1]).must_equal !@origin[1]
       @var[1].must_equal @origin[1]
 
       @proxy[2].must_equal @origin[2]
+      @proxy.dig(2).must_equal @origin[2]
       (@proxy[2] + 's').must_equal @origin[2] + 's'
       @var[2].must_equal @origin[2]
+
+      assert @proxy.include?('var')
+      assert @proxy.include?(1)
     end
 
     it 'allow to be used with concat' do
@@ -45,11 +51,17 @@ describe CowProxy do
 
       @proxy[2] << 's'
       @proxy[2].must_equal @origin[2] + 's'
+      @proxy.dig(2).must_equal @origin[2] + 's'
       @var[2].must_equal @origin[2]
+      refute @proxy.include?(@var[2])
+      assert @proxy.include?(@var[2] + 's')
 
       @proxy[2] = 'new'
       @proxy[2].must_equal 'new'
+      @proxy.dig(2).must_equal 'new'
       @var[2].must_equal @origin[2]
+      refute @proxy.include?(@var[2])
+      assert @proxy.include?('new')
     end
 
     it 'copy on write on assign' do
@@ -182,6 +194,10 @@ describe CowProxy do
       @var.must_equal @origin
       @proxy.wont_equal @origin
       @proxy[2].must_equal @origin[2].upcase
+    end
+
+    it 'grep return wrapped string' do
+      @proxy.grep(String).must_equal ['var']
     end
   end
 end
