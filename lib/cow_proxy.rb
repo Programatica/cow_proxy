@@ -114,7 +114,7 @@ module CowProxy
     def define_case_equality(klass)
       class << klass
         def ===(other)
-          CowProxy::Base === other ? obj.kind_of?(self) : super(other) # rubocop:disable Style/CaseEquality,Style/ClassCheck
+          CowProxy::Base === other ? other.kind_of?(self) : super(other) # rubocop:disable Style/CaseEquality,Style/ClassCheck
         end
       end
     end
