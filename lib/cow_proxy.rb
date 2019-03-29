@@ -10,14 +10,10 @@
 #   obj = CustomClass.new
 #   obj.freeze
 #   proxy = CowProxy.wrap(obj)
-
 module CowProxy
   autoload :Enumerable, 'cow_proxy/enumerable.rb'
   autoload :Indexable, 'cow_proxy/indexable.rb'
   class << self
-    # @!visibility private
-    @@wrapper_classes = {}
-
     # Create new proxy class for klass, with copy on write enabled.
     #
     # In other case CowProxy will wrap objects of klass without copy on write
@@ -30,8 +26,8 @@ module CowProxy
     #   end
     #
     # @return new proxy class, so it can be used to create a class which inherits from it
-    def WrapClass(klass)
-      _WrapClass(klass)
+    def WrapClass(klass) # rubocop:disable Naming/MethodName
+      _wrap_class(klass)
     end
 
     # Register proxy to be used when wrapping an object of klass.
@@ -43,9 +39,10 @@ module CowProxy
     #
     # @return proxy_klass
     def register_proxy(klass, proxy_klass)
-      return if @@wrapper_classes[klass]
+      return if @wrapper_classes&.dig(klass)
       debug { "register proxy for #{klass} with #{proxy_klass}#{" < #{proxy_klass.superclass}" if proxy_klass}" }
-      @@wrapper_classes[klass] = proxy_klass
+      @wrapper_classes ||= {}
+      @wrapper_classes[klass] = proxy_klass
     end
 
     # Returns a proxy wrapping obj, using registered class for obj's class.
@@ -68,10 +65,10 @@ module CowProxy
     #   if none is registered
     def wrapper_class(obj)
       # only classes with defined wrapper and Structs has COW enabled by default
-      if @@wrapper_classes.has_key?(obj.class)
-        @@wrapper_classes[obj.class]
+      if @wrapper_classes&.has_key?(obj.class)
+        @wrapper_classes[obj.class]
       else
-        _WrapClass(obj.class, obj.class < ::Struct, true)
+        _wrap_class(obj.class, obj.class < ::Struct, true)
       end
     end
 
@@ -88,8 +85,9 @@ module CowProxy
     end
 
     private
-    def _WrapClass(klass, cow = true, register = false)
-      proxy_superclass = get_proxy_klass_for(klass.superclass) || Base
+
+    def _wrap_class(klass, cow = true, register = false)
+      proxy_superclass = get_proxy_klass_for(klass.superclass)
       debug { "create new proxy class for #{klass} from #{proxy_superclass} with#{'out' unless cow} cow" }
       proxy_klass = Class.new(proxy_superclass) do |k|
         k.wrapped_class = klass
@@ -97,21 +95,16 @@ module CowProxy
       register_proxy klass, proxy_klass if register
       define_case_equality klass
 
-      methods = klass.instance_methods
-      methods -= [:__copy_on_write__, :__wrap__, :__wrapped_value__, :__wrapped_method__, :__getobj__, :__copy_parent__,
-                  :enum_for, :send, :===, :frozen?]
-      methods -= proxy_superclass.wrapped_class.instance_methods if proxy_superclass.wrapped_class
-      methods -= [:inspect] if ENV['DEBUG']
-
+      methods = methods_to_wrap(klass, proxy_superclass)
       proxy_klass.module_eval do
         methods.each do |method|
           define_method method, proxy_klass.wrapping_block(method, cow)
         end
       end
-      proxy_klass.define_singleton_method :public_instance_methods do |all=true|
+      proxy_klass.define_singleton_method :public_instance_methods do |all = true|
         super(all) - klass.protected_instance_methods
       end
-      proxy_klass.define_singleton_method :protected_instance_methods do |all=true|
+      proxy_klass.define_singleton_method :protected_instance_methods do |all = true|
         super(all) | klass.protected_instance_methods
       end
       proxy_klass
@@ -120,18 +113,28 @@ module CowProxy
     # fix case equality for wrapped objects, kind_of?(klass) works, but klass === was failing
     def define_case_equality(klass)
       class << klass
-        def ===(obj)
-          CowProxy::Base === obj ? obj.kind_of?(self) : super(obj)
+        def ===(other)
+          CowProxy::Base === other ? obj.kind_of?(self) : super(other) # rubocop:disable Style/CaseEquality,Style/ClassCheck
         end
       end
     end
 
+    def methods_to_wrap(klass, proxy_superclass)
+      methods = klass.instance_methods
+      methods -= %i[__copy_on_write__ __wrap__ __wrapped_value__ __wrapped_method__ __getobj__
+                    __copy_parent__ enum_for send === frozen?]
+      methods -= proxy_superclass.wrapped_class.instance_methods if proxy_superclass.wrapped_class
+      methods -= [:inspect] if ENV['DEBUG']
+      methods
+    end
+
     def get_proxy_klass_for(klass)
-      wrapper = nil
+      proxy_klass = nil
       klass.ancestors.each do |ancestor|
-        wrapper = @@wrapper_classes[ancestor] and break
+        proxy_klass = @wrapper_classes&.dig ancestor
+        break if proxy_klass
       end
-      wrapper
+      proxy_klass || Base
     end
   end
 end
@@ -141,15 +144,11 @@ end
   CowProxy.register_proxy klass, nil
 end
 
-if 1.class == Integer
+if 1.instance_of? Integer
   CowProxy.register_proxy Integer, nil
 else
-  if defined? Fixnum
-    CowProxy.register_proxy Fixnum, nil
-  end
-  if defined? Bignum
-    CowProxy.register_proxy Bignum, nil
-  end
+  CowProxy.register_proxy Fixnum, nil if defined? Fixnum
+  CowProxy.register_proxy Bignum, nil if defined? Bignum
 end
 
 require 'cow_proxy/base.rb'

@@ -51,6 +51,7 @@ module CowProxy
     end
 
     private
+
     def mutable_selector(method, &block)
       return send(method) unless block
       @delegate_dc_obj = send(method, &block).tap do

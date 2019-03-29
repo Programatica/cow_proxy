@@ -64,7 +64,7 @@ module CowProxy
     #
     # @return [Array] Wrapped values from hash
     def include?(key)
-      has_key?(key)
+      key?(key)
     end
 
     # Used for merging into another Hash

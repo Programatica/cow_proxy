@@ -1,2 +1,15 @@
 AllCops:
   TargetRubyVersion: 2.3
+
+Lint/UnifiedInteger:
+  Enabled: false
+
+Metrics/PerceivedComplexity:
+  Max: 7
+
+Metrics/LineLength:
+  Max: 100
+  IgnoreCopDirectives: true
+
+Style/FrozenStringLiteralComment:
+  Enabled: false

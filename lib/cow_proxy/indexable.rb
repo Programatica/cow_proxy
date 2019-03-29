@@ -9,7 +9,7 @@ module CowProxy
     #
     # @return CowProxy wrapped value from wrapped object
     def [](index)
-      return @hash[index] if @hash && @hash.has_key?(index)
+      return @hash[index] if @hash&.has_key?(index)
 
       begin
         value = __getobj__[index]
@@ -20,8 +20,8 @@ module CowProxy
       end
     end
 
-    # Extracts the nested value specified by the sequence of idx objects by calling dig at each step,
-    # returning nil if any intermediate step is nil.
+    # Extracts the nested value specified by the sequence of idx objects by calling dig
+    # at each step, returning nil if any intermediate step is nil.
     #
     # @return CowProxy wrapped value from wrapped object
     def dig(key, *args)
@@ -36,6 +36,7 @@ module CowProxy
     end
 
     protected
+
     # Copy wrapped values to duplicated wrapped object
     # @see CowProxy::Base#__copy_on_write__
     # @return duplicated wrapped object

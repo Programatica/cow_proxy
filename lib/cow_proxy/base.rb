@@ -17,6 +17,7 @@ module CowProxy
       end
 
       protected
+
       # Return block with proxy implementation.
       #
       # Block calls a method in wrapped object
@@ -31,9 +32,9 @@ module CowProxy
           if method.to_s =~ /^\w+$/
             inst_var = "@#{method}"
             return _instance_variable_get(inst_var) if _instance_variable_defined?(inst_var)
-          elsif method.to_s =~ /^(\w+)=$/ && _instance_variable_defined?("@#{$1}")
-            CowProxy.debug { "remove #{$1}" }
-            _remove_instance_variable "@#{$1}"
+          elsif method.to_s =~ /^(\w+)=$/ && _instance_variable_defined?("@#{Regexp.last_match(1)}")
+            CowProxy.debug { "remove #{Regexp.last_match(1)}" }
+            _remove_instance_variable "@#{Regexp.last_match(1)}"
           end
           __wrapped_method__(inst_var, cow_enabled, method, *args, &block)
         end
@@ -54,6 +55,7 @@ module CowProxy
     end
 
     protected
+
     # Replace wrapped object with a copy, so object can
     # be modified.
     #
@@ -71,6 +73,7 @@ module CowProxy
     end
 
     private
+
     def __getobj__
       @delegate_dc_obj
     end
@@ -93,30 +96,33 @@ module CowProxy
     end
 
     def __wrapped_value__(inst_var, method, *args, &block)
-      CowProxy.debug { "run on #{__getobj__.class.name} (#{__getobj__.object_id}) #{method} #{args.inspect unless args.empty?}" }
+      CowProxy.debug do
+        "run on #{__getobj__.class.name} (#{__getobj__.object_id}) "\
+        "#{method} #{args.inspect unless args.empty?}"
+      end
       value = __getobj__.__send__(method, *args, &block)
-      wrap_value = __wrap__(value, inst_var) if inst_var && args.empty? && block.nil?
+      wrap_value = __wrap__(value, inst_var) if inst_var && args.empty? && !block
       wrap_value || value
     end
 
     def __wrapped_method__(inst_var, cow, method, *args, &block)
       __wrapped_value__(inst_var, method, *args, &block)
-    rescue => e
+    rescue StandardError => e
       CowProxy.debug do
         "error #{e.message} on #{__getobj__.class.name} (#{__getobj__.object_id}) #{method} "\
         "#{args.inspect unless args.empty?} with#{'out' unless cow} cow"
       end
       raise unless cow && e.message =~ /^can't modify frozen/
-      CowProxy.debug { "copy on write to run #{method} #{args.inspect unless args.empty?} (#{e.message})" }
+      CowProxy.debug { "copy on write to run #{method}" }
       __copy_on_write__
       CowProxy.debug { "new target #{__getobj__.class.name} (#{__getobj__.object_id})" }
       __wrapped_value__(inst_var, method, *args, &block)
     end
 
-    alias :_instance_variable_get :instance_variable_get
-    alias :_instance_variable_set :instance_variable_set
-    alias :_remove_instance_variable :remove_instance_variable
-    alias :_instance_variable_defined? :instance_variable_defined?
-    alias :_instance_variables :instance_variables
+    alias _instance_variable_get instance_variable_get
+    alias _instance_variable_set instance_variable_set
+    alias _remove_instance_variable remove_instance_variable
+    alias _instance_variable_defined? instance_variable_defined?
+    alias _instance_variables instance_variables
   end
 end
