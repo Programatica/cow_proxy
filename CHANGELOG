@@ -1,3 +1,7 @@
+= 0.3.0
+- Fix include? with proxy hash
+- Fix dig when called in nested structure of array, hash and struct
+
 = 0.2.2
 - Fix interpolating wrapped strings
 
