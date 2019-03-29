@@ -43,8 +43,9 @@ module CowProxy
     #
     # @return proxy_klass
     def register_proxy(klass, proxy_klass)
-      debug { "register proxy for #{klass} with #{proxy_klass}#{" < #{proxy_klass.superclass}" if proxy_klass}" } unless @@wrapper_classes[klass]
-      @@wrapper_classes[klass] ||= proxy_klass
+      return if @@wrapper_classes[klass]
+      debug { "register proxy for #{klass} with #{proxy_klass}#{" < #{proxy_klass.superclass}" if proxy_klass}" }
+      @@wrapper_classes[klass] = proxy_klass
     end
 
     # Returns a proxy wrapping obj, using registered class for obj's class.
@@ -97,8 +98,8 @@ module CowProxy
       define_case_equality klass
 
       methods = klass.instance_methods
-      methods -= [:__copy_on_write__, :__wrap__, :__wrapped_value__, :__wrapped_method__, :__getobj__, :enum_for,
-                  :send, :===, :frozen?]
+      methods -= [:__copy_on_write__, :__wrap__, :__wrapped_value__, :__wrapped_method__, :__getobj__, :__copy_parent__,
+                  :enum_for, :send, :===, :frozen?]
       methods -= proxy_superclass.wrapped_class.instance_methods if proxy_superclass.wrapped_class
       methods -= [:inspect] if ENV['DEBUG']
 
