@@ -27,7 +27,7 @@ CowProxy.wrap(obj)
 
 It doesn't need to be a frozen object, it can be frozen later or only have references to frozen objects, but no object will be duplicated until some change is requested on frozen object.
 
-To create a CowProxy class for custom class, create a new class which inherits from CowProxy::WrapClass(CustomClass):
+To create a CowProxy class for custom class, create a new class which inherits from `CowProxy::WrapClass(CustomClass)`:
 
 ```ruby
 module YourModule
@@ -40,7 +40,7 @@ obj.freeze
 proxy = CowProxy.wrap(obj)
 ```
 
-You can create proxy in CowProxy module too:
+You can create proxy in `CowProxy` module too:
 
 ```ruby
 module CowProxy
@@ -49,9 +49,9 @@ module CowProxy
 end
 ```
 
-If your custom class has some getters with arguments, such as [] method of Array or Hash, you will have to define it in your Proxy so it wraps returned values and memoizes them, and override _copy_on_write to set memoized proxies to duplicated object. Wrapped object can be accessed from proxy with \__getobj\__ method. You can see an example in CowProxy::Indexable module, which is used for Array and Hash classes.
+If your custom class has some getters with arguments, such as `[]` method of `Array` or `Hash`, you will have to define it in your Proxy so it wraps returned values and memoizes them, and override `__copy_on_write__` to set memoized proxies to duplicated object. Wrapped object can be accessed from proxy with `__getobj__` method. You can see an example in `CowProxy::Indexable` module, which is used for `Array` and `Hash` classes.
  
-If your custom class inherits from a class with CowProxy class, you don't need to create an own class, unless you need to override some method. But you must inherit from WrapClass(CustomClass) so your new proxy class is registered:
+If your custom class inherits from a class with `CowProxy` class, you don't need to create an own class, unless you need to override some method. But you must inherit from `WrapClass(CustomClass)` so your new proxy class is registered:
  
  ```ruby
 module CowProxy
@@ -75,7 +75,7 @@ module CowProxy
       @custom_var = {}
     end
 
-    def _copy_on_write(*)
+    def __copy_on_write__(*)
       super.tap do
         if @custom_var
           @custom_var.each do |k, v|
