@@ -1,4 +1,4 @@
-= 0.3.0
+= 0.3.1
 - Fix include? with proxy hash
 - Fix dig when called in nested structure of array, hash and struct
 
