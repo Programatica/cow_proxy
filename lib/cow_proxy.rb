@@ -89,21 +89,12 @@ module CowProxy
     private
     def _WrapClass(klass, cow = true, register = false)
       proxy_superclass = get_proxy_klass_for(klass.superclass) || Base
-      debug do
-        "create new proxy class for #{klass}#{" from #{proxy_superclass}" if proxy_superclass} with"\
-        "#{'out' unless cow} cow"
-      end
+      debug { "create new proxy class for #{klass} from #{proxy_superclass} with#{'out' unless cow} cow" }
       proxy_klass = Class.new(proxy_superclass) do |k|
         k.wrapped_class = klass
       end
       register_proxy klass, proxy_klass if register
-
-      # fix case equality for wrapped objects, kind_of?(klass) works, but klass === was failing
-      class << klass
-        def ===(obj)
-          obj.kind_of?(self)
-        end
-      end
+      define_case_equality klass
 
       methods = klass.instance_methods
       methods -= [:__copy_on_write__, :__wrap__, :__wrapped_value__, :__wrapped_method__, :__getobj__, :enum_for,
@@ -123,6 +114,15 @@ module CowProxy
         super(all) | klass.protected_instance_methods
       end
       proxy_klass
+    end
+
+    # fix case equality for wrapped objects, kind_of?(klass) works, but klass === was failing
+    def define_case_equality(klass)
+      class << klass
+        def ===(obj)
+          CowProxy::Base === obj ? obj.kind_of?(self) : super(obj)
+        end
+      end
     end
 
     def get_proxy_klass_for(klass)
