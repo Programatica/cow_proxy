@@ -52,12 +52,14 @@ describe CowProxy do
     it 'copy on write on mutable methods on child of child' do
       @proxy.b[1].o[:rows] += 1
       @proxy.b[1].o[:rows].must_equal @origin.b[1].o[:rows] + 1
+      @proxy.dig(:b, 1, :o, :rows).must_equal @origin.b[1].o[:rows] + 1
       @proxy.b[1].n.must_equal @origin.b[1].n
       @var.b[1].o[:rows].must_equal @origin.b[1].o[:rows]
       @proxy.b[0].must_equal @origin.b[0]
 
       @proxy.b[0].o[:classes] << ' custom'
       @proxy.b[0].o[:classes].must_equal @origin.b[0].o[:classes] + ' custom'
+      @proxy.dig(:b, 0, :o, :classes).must_equal @origin.b[0].o[:classes] + ' custom'
       @proxy.b[0].o[:size].must_equal @origin.b[0].o[:size]
       @proxy.b[0].o.wont_equal @origin.b[0].o
       @var.b[0].must_equal @origin.b[0]

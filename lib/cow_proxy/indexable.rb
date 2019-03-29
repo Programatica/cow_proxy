@@ -20,6 +20,15 @@ module CowProxy
       end
     end
 
+    # Extracts the nested value specified by the sequence of idx objects by calling dig at each step,
+    # returning nil if any intermediate step is nil.
+    #
+    # @return CowProxy wrapped value from wrapped object
+    def dig(key, *args)
+      value = self[key]
+      args.empty? ? value : value&.dig(*args)
+    end
+
     # Extends {CowProxy::Base#initialize}
     def initialize(*)
       super

@@ -34,7 +34,7 @@ describe CowProxy do
 
   describe 'proxy struct with immutable objects' do
     before do
-      @var = Struct.new(:int, :bool).new(1, true).freeze
+      @var = ::Struct.new(:int, :bool).new(1, true).freeze
       @proxy = CowProxy.wrap(@var)
     end
 

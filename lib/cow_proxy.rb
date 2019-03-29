@@ -70,7 +70,7 @@ module CowProxy
       if @@wrapper_classes.has_key?(obj.class)
         @@wrapper_classes[obj.class]
       else
-        _WrapClass(obj.class, obj.class < Struct, true)
+        _WrapClass(obj.class, obj.class < ::Struct, true)
       end
     end
 
@@ -89,7 +89,10 @@ module CowProxy
     private
     def _WrapClass(klass, cow = true, register = false)
       proxy_superclass = get_proxy_klass_for(klass.superclass) || Base
-      debug { "create new proxy class for #{klass}#{" from #{proxy_superclass}" if proxy_superclass}" }
+      debug do
+        "create new proxy class for #{klass}#{" from #{proxy_superclass}" if proxy_superclass} with"\
+        "#{'out' unless cow} cow"
+      end
       proxy_klass = Class.new(proxy_superclass) do |k|
         k.wrapped_class = klass
       end
@@ -103,7 +106,8 @@ module CowProxy
       end
 
       methods = klass.instance_methods
-      methods -= [:__copy_on_write__, :__wrap__, :__wrapped_value__, :__wrapped_method__, :__getobj__, :enum_for, :send, :===, :frozen?]
+      methods -= [:__copy_on_write__, :__wrap__, :__wrapped_value__, :__wrapped_method__, :__getobj__, :enum_for,
+                  :send, :===, :frozen?]
       methods -= proxy_superclass.wrapped_class.instance_methods if proxy_superclass.wrapped_class
       methods -= [:inspect] if ENV['DEBUG']
 
@@ -151,4 +155,5 @@ require 'cow_proxy/base.rb'
 require 'cow_proxy/array.rb'
 require 'cow_proxy/hash.rb'
 require 'cow_proxy/string.rb'
+require 'cow_proxy/struct.rb'
 require 'cow_proxy/set.rb'
