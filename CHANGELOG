@@ -1,3 +1,6 @@
+= 0.3.2
+- hash method in proxy hash return integer, so [] | [proxy_hash] works
+
 = 0.3.1
 - Fix include? with proxy hash
 - Fix dig when called in nested structure of array, hash and struct
