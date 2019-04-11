@@ -1,3 +1,6 @@
+= 0.3.3
+- don't wrap frozen proc so instance_exec with proc works
+
 = 0.3.2
 - hash method in proxy hash return integer, so [] | [proxy_hash] works
 
