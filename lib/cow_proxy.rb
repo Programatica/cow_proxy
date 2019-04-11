@@ -140,7 +140,7 @@ module CowProxy
 end
 
 # no proxy klass for immutable classes
-[Integer, Float, Symbol, TrueClass, FalseClass, NilClass].each do |klass|
+[Integer, Float, Symbol, TrueClass, FalseClass, NilClass, Proc].each do |klass|
   CowProxy.register_proxy klass, nil
 end
 

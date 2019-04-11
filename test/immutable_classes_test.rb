@@ -34,7 +34,7 @@ describe CowProxy do
 
   describe 'proxy struct with immutable objects' do
     before do
-      @var = ::Struct.new(:int, :bool).new(1, true).freeze
+      @var = ::Struct.new(:int, :bool, :proc).new(1, true, proc{ 3 }).deep_freeze!
       @proxy = CowProxy.wrap(@var)
     end
 
@@ -52,6 +52,8 @@ describe CowProxy do
       @proxy.bool = false
       @proxy.bool.must_equal false
       @var.bool.must_equal true
+
+      assert_equal instance_exec(&@proxy.proc), 3
     end
   end
 end
