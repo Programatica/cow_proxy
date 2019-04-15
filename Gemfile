@@ -9,7 +9,7 @@ gemspec
 # Include everything needed to run rake, tests, features, etc.
 group :development, :test do
   gem 'byebug', platform: :mri
-  gem 'rake'
+  gem 'rake', require: false
   gem 'rdoc'
   gem 'simplecov'
   gem 'minitest'
