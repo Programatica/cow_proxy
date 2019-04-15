@@ -10,6 +10,7 @@ gemspec
 group :development, :test do
   gem 'byebug', platform: :mri
   gem 'rake'
+  gem 'rdoc'
   gem 'simplecov'
   gem 'minitest'
   gem 'ice_nine'
