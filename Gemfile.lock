@@ -14,6 +14,7 @@ GEM
     json (2.2.0)
     minitest (5.11.3)
     rake (12.3.2)
+    rdoc (6.1.1)
     simplecov (0.16.1)
       docile (~> 1.1)
       json (>= 1.8, < 3)
@@ -30,6 +31,7 @@ DEPENDENCIES
   ice_nine
   minitest
   rake
+  rdoc
   simplecov
 
 BUNDLED WITH
