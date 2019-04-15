@@ -1,5 +1,8 @@
 after_success:
   - bundle exec codeclimate-test-reporter
+before_install:
+  - gem update --system
+  - gem install bundler
 bundler_args: --clean --deployment --jobs=$(nproc) --without development production
 cache: bundler
 dist: trusty
@@ -13,7 +16,6 @@ rvm:
   - 2.6.1
   - jruby-9.1.8.0
   - rbx-3
-sudo: required
 matrix:
   allow_failures:
     - rvm: rbx-3
